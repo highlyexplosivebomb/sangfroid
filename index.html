@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sangfroid</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles.css">
+  <script type="module" src="/src/main.ts"></script>
+</head>
+
+<body>
+  <main class="page">
+    <section class="stage">
+      <div class="landing-screen" id="landingScreen">
+        <div class="click-me-hint">
+          <span>Click the clock to sign-up!</span>
+          <svg class="click-me-arrow" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5,25 Q35,5 55,45" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M40,40 L55,45 L50,30" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </div>
+        <button class="watch-body" id="openFormButton" type="button">
+          <div class="digital-display" id="digitalDisplay">00:00</div>
+        </button>
+        <div class="definition-card">
+          <strong>sangfroid</strong>
+          <br />
+          <em>noun</em> &bull; composure or coolness, sometimes excessive, as shown in danger or under trying
+          circumstances.
+        </div>
+      </div>
+
+      <section class="form-panel" id="signupFormPanel" style="opacity: 0; pointer-events: none;">
+
+        <form id="signupForm" novalidate>
+          <section class="signup-stage" data-signup-stage="1">
+            <div class="half-compass-bg">
+              <svg viewBox="0 0 200 200" class="compass-body">
+                <circle cx="100" cy="100" r="96" fill="var(--color-panel)" stroke="var(--color-text)"
+                  stroke-width="4" />
+                <circle cx="100" cy="100" r="88" fill="none" stroke="var(--color-text)" stroke-width="1.5" />
+
+                <circle cx="100" cy="100" r="85" fill="none" stroke="var(--color-text-muted)" stroke-width="4"
+                  stroke-dasharray="1 7.901179" stroke-dashoffset="0.5" />
+                <circle cx="100" cy="100" r="84" fill="none" stroke="var(--color-text)" stroke-width="6"
+                  stroke-dasharray="2 41.98229" stroke-dashoffset="1" />
+
+                <polygon points="100,42 115,75 100,100" fill="var(--color-danger)" />
+                <polygon points="100,42 85,75 100,100" fill="#991b1b" />
+
+                <polygon points="100,158 85,125 100,100" fill="var(--color-text)" />
+                <polygon points="100,158 115,125 100,100" fill="var(--color-text-muted)" />
+
+                <text x="100" y="38" font-family="'Share Tech Mono', monospace" font-size="22"
+                  stroke="var(--color-text)" stroke-width="1" paint-order="stroke fill" fill="var(--color-text)"
+                  text-anchor="middle">N</text>
+                <text x="171" y="107" font-family="'Share Tech Mono', monospace" font-size="22"
+                  stroke="var(--color-text)" stroke-width="1.75" paint-order="stroke fill" fill="var(--color-text)"
+                  text-anchor="middle">E</text>
+
+                <circle cx="100" cy="100" r="15" fill="var(--color-primary)" stroke="var(--color-text)"
+                  stroke-width="3" />
+              </svg>
+            </div>
+            <div class="stage-1-content">
+              <input type="text" name="gameCode" placeholder="Code" required />
+              <p class="stage-description">Your code is unique to your group and determines which game you play in.</p>
+            </div>
+
+            <div class="stage-actions">
+              <button class="nav-button" type="submit" style="margin-inline-start: auto;">▶</button>
+            </div>
+          </section>
+
+          <section class="signup-stage" data-signup-stage="2" hidden>
+            <label>
+              Email
+              <input type="email" name="email" placeholder="player@example.com" required />
+            </label>
+
+            <div class="grid two-up">
+              <label>
+                Team Name
+                <input type="text" name="name" placeholder="The Bestest Team" required />
+              </label>
+              <label>
+                Team Leader Name
+                <input type="text" name="playerOne" placeholder="John Doe" required />
+              </label>
+            </div>
+
+            <div class="stage-actions">
+              <button class="nav-button" type="button" data-stage-back="1">◀</button>
+              <button class="nav-button" type="submit">▶</button>
+            </div>
+          </section>
+
+          <section class="signup-stage" data-signup-stage="3" hidden>
+            <fieldset class="radio-group" id="teammateCountGroup">
+              <legend>How many teammates?</legend>
+              <div class="radio-options">
+                <label class="radio-label">
+                  <input type="radio" name="extraTeammates" value="0" checked />
+                  <span class="radio-custom">0</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="extraTeammates" value="1" />
+                  <span class="radio-custom">1</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="extraTeammates" value="2" />
+                  <span class="radio-custom">2</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="grid two-up hidden" id="teammateNameInputs">
+              <label id="playerTwoLabel" class="hidden">
+                Teammate 1 Name
+                <input type="text" name="playerTwo" id="playerTwoInput" />
+              </label>
+              <label id="playerThreeLabel" class="hidden">
+                Teammate 2 Name
+                <input type="text" name="playerThree" id="playerThreeInput" />
+              </label>
+            </div>
+
+            <div class="stage-actions">
+              <button class="nav-button" type="button" data-stage-back="2">◀</button>
+              <button id="submitButton" class="nav-button" type="submit">✓</button>
+            </div>
+          </section>
+        </form>
+        <div id="submissionOverlay" class="submission-overlay">
+          <div class="animation-container">
+            <lottie-player id="savingAnim" class="lottie-anim"
+              src="https://lottie.host/831636a3-6cc0-459f-8a24-1758cda83090/IitX4LN06D.json" loop autoplay></lottie-player>
+            <lottie-player id="successAnim" class="lottie-anim hidden"
+              src="https://lottie.host/1a4a12e4-3842-46c5-a979-d795db5c0d5a/KE7bWPQgvy.json"></lottie-player>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+</body>
+
+</html>

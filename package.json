@@ -1,0 +1,20 @@
+{
+  "name": "sangfroid",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "local": "vite --host 127.0.0.1 --port 4173 --open",
+    "build": "vite build"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@tsconfig/vite-react": "^8.1.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.1.4"
+  },
+  "dependencies": {
+    "@lottiefiles/lottie-player": "^2.0.12",
+    "@supabase/supabase-js": "^2.110.3"
+  }
+}
