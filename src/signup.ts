@@ -70,11 +70,11 @@ export function getCheckedValues(form: HTMLFormElement, inputName: string): stri
   return Array.from(els).map((el) => (el as HTMLInputElement).value);
 }
 
-function buildPlayerPayload(form: HTMLFormElement, prefix = ''): PlayerPayload {
+function buildPlayerPayload(form: HTMLFormElement, isJoin = false): PlayerPayload {
   return {
-    player_name: getField(form, `${prefix}playerName`),
-    availability: getCheckedValues(form, `${prefix}availability`),
-    comments: getField(form, `${prefix}comments`),
+    player_name: getField(form, isJoin ? 'joinPlayerName' : 'playerName'),
+    availability: getCheckedValues(form, isJoin ? 'joinAvailability' : 'availability'),
+    comments: getField(form, isJoin ? 'joinComments' : 'comments'),
   };
 }
 
@@ -95,6 +95,6 @@ export function buildJoinPayload(form: HTMLFormElement, teamId: number): JoinTea
   return {
     signupType: 'join',
     team_id: teamId,
-    ...buildPlayerPayload(form, 'join'),
+    ...buildPlayerPayload(form, true),
   };
 }
