@@ -11,12 +11,14 @@
   "license": "ISC",
   "devDependencies": {
     "@tsconfig/vite-react": "^8.1.1",
+    "@types/leaflet": "^1.9.21",
     "typescript": "^7.0.2",
     "vite": "^8.1.4",
     "vitest": "^4.1.10"
   },
   "dependencies": {
     "@lottiefiles/lottie-player": "^2.0.12",
-    "@supabase/supabase-js": "^2.110.3"
+    "@supabase/supabase-js": "^2.110.3",
+    "leaflet": "^1.9.4"
   }
 }

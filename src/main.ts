@@ -1,3 +1,5 @@
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { getTeamByTag, saveTeamCreate, saveTeamJoin } from './supabase';
 import {
   buildCreatePayload,
@@ -247,5 +249,47 @@ signupForm.addEventListener('submit', async (event) => {
     }
   }
 });
-
 syncStageVisibility();
+
+const map = L.map('mapBackground', {
+  center: [-33.8688, 151.2093], // Sydney
+  zoom: 18,
+  zoomControl: false,
+  dragging: false,
+  scrollWheelZoom: false,
+  doubleClickZoom: false,
+  boxZoom: false,
+  keyboard: false,
+  attributionControl: false,
+});
+
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 19,
+}).addTo(map);
+
+let lastTime = performance.now();
+let xAcc = 0;
+let yAcc = 0;
+
+function animateMap(time: number) {
+  const dt = time - lastTime;
+  lastTime = time;
+
+  const speed = 25;
+  const dist = (dt / 1000) * speed;
+
+  xAcc += dist;
+  yAcc += dist;
+
+  const panX = Math.floor(xAcc);
+  const panY = Math.floor(yAcc);
+
+  if (panX !== 0 || panY !== 0) {
+    map.panBy([panX, panY], { animate: false });
+    xAcc -= panX;
+    yAcc -= panY;
+  }
+
+  requestAnimationFrame(animateMap);
+}
+requestAnimationFrame(animateMap);
