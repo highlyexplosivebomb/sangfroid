@@ -5,13 +5,15 @@
   "scripts": {
     "dev": "vite",
     "local": "vite --host 127.0.0.1 --port 4173 --open",
-    "build": "vite build"
+    "build": "vite build",
+    "test": "vitest run"
   },
   "license": "ISC",
   "devDependencies": {
     "@tsconfig/vite-react": "^8.1.1",
     "typescript": "^7.0.2",
-    "vite": "^8.1.4"
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "@lottiefiles/lottie-player": "^2.0.12",
