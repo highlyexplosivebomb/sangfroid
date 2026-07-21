@@ -35,7 +35,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_SUPABASE_TEAM_TABLE: ${{ secrets.VITE_SUPABASE_TEAM_TABLE }}
-          VITE_SUPABASE_PLAYERS_TABLE: ${{ secrets.VITE_SUPABASE_PLAYERS_TABLE }}
+          VITE_SUPABASE_PLAYER_TABLE: ${{ secrets.VITE_SUPABASE_PLAYER_TABLE }}
           VITE_GAME_CODE_1: ${{ secrets.VITE_GAME_CODE_1 }}
           VITE_GAME_CODE_2: ${{ secrets.VITE_GAME_CODE_2 }}
           VITE_GAME_CODE_3: ${{ secrets.VITE_GAME_CODE_3 }}

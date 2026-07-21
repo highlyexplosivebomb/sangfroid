@@ -7,7 +7,8 @@
   <title>Sangfroid</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Share+Tech+Mono&display=swap"
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Caveat:wght@600&family=Inter:wght@400;500;600&family=Share+Tech+Mono&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="/src/styles.css">
   <script type="module" src="/src/main.ts"></script>
@@ -37,8 +38,7 @@
         </div>
       </div>
 
-      <section class="form-panel" id="signupFormPanel" style="opacity: 0; pointer-events: none;">
-
+      <section class="form-panel" id="signupFormPanel">
         <form id="signupForm" novalidate>
           <section class="signup-stage" data-signup-stage="1">
             <div class="half-compass-bg">
@@ -80,72 +80,139 @@
           </section>
 
           <section class="signup-stage" data-signup-stage="2" hidden>
+            <div class="choice-grid">
+              <button type="button" class="choice-card" id="choiceCreate" data-choice="create">
+                <svg class="choice-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                  <line x1="4" y1="22" x2="4" y2="15" />
+                </svg>
+                <strong>Create Team</strong>
+              </button>
+
+              <div class="choice-card join-card">
+                <svg class="choice-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+                <strong>Join Team</strong>
+                <div class="join-input-row">
+                  <input type="text" name="teamTag" placeholder="Tag" />
+                  <button type="button" class="join-go-btn" id="joinTagSubmit">▶</button>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          <section class="signup-stage" data-signup-stage="3" data-signup-type="create" hidden>
             <label>
-              Email
+              <span>Email<span class="req-star">*</span></span>
               <input type="email" name="email" placeholder="player@example.com" required />
             </label>
 
             <div class="grid two-up">
               <label>
-                Team Name
-                <input type="text" name="name" placeholder="The Bestest Team" required />
+                <span>Team Name<span class="req-star">*</span></span>
+                <input type="text" name="teamName" placeholder="The Bestest Team" pattern="[A-Za-z\s]+" required />
+                <span class="error-hint">Only letters and spaces are allowed.</span>
               </label>
               <label>
-                Team Leader Name
-                <input type="text" name="playerOne" placeholder="John Doe" required />
-              </label>
-            </div>
-
-            <div class="stage-actions">
-              <button class="nav-button" type="button" data-stage-back="1">◀</button>
-              <button class="nav-button" type="submit">▶</button>
-            </div>
-          </section>
-
-          <section class="signup-stage" data-signup-stage="3" hidden>
-            <fieldset class="radio-group" id="teammateCountGroup">
-              <legend>How many teammates?</legend>
-              <div class="radio-options">
-                <label class="radio-label">
-                  <input type="radio" name="extraTeammates" value="0" checked />
-                  <span class="radio-custom">0</span>
-                </label>
-                <label class="radio-label">
-                  <input type="radio" name="extraTeammates" value="1" />
-                  <span class="radio-custom">1</span>
-                </label>
-                <label class="radio-label">
-                  <input type="radio" name="extraTeammates" value="2" />
-                  <span class="radio-custom">2</span>
-                </label>
-              </div>
-            </fieldset>
-
-            <div class="grid two-up hidden" id="teammateNameInputs">
-              <label id="playerTwoLabel" class="hidden">
-                Teammate 1 Name
-                <input type="text" name="playerTwo" id="playerTwoInput" />
-              </label>
-              <label id="playerThreeLabel" class="hidden">
-                Teammate 2 Name
-                <input type="text" name="playerThree" id="playerThreeInput" />
+                <span>Your Name<span class="req-star">*</span></span>
+                <input type="text" name="playerName" placeholder="John Doe" required />
               </label>
             </div>
 
             <div class="stage-actions">
               <button class="nav-button" type="button" data-stage-back="2">◀</button>
-              <button id="submitButton" class="nav-button" type="submit">✓</button>
+              <button class="nav-button" type="submit">▶</button>
             </div>
           </section>
+
+          <section class="signup-stage" data-signup-stage="4" data-signup-type="create" hidden>
+            <fieldset class="checkbox-group" id="availabilityGroup">
+              <legend>Which days are you available?<span class="req-star">*</span></legend>
+              <div class="checkbox-options">
+                <label class="checkbox-label">
+                  <input type="checkbox" name="availability" value="14/08" />
+                  <span class="checkbox-custom">14/08 (Fri)</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="availability" value="15/08" />
+                  <span class="checkbox-custom">15/08 (Sat)</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="availability" value="16/08" />
+                  <span class="checkbox-custom">16/08 (Sun)</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <label>
+              Comments
+              <textarea name="comments" placeholder="Only available after 4pm on 15/08, etc..." rows="3"></textarea>
+            </label>
+
+            <div class="stage-actions">
+              <button class="nav-button" type="button" data-stage-back="3">◀</button>
+              <button id="submitButtonCreate" class="nav-button" type="submit">✓</button>
+            </div>
+          </section>
+
+          <section class="signup-stage" data-signup-stage="4" data-signup-type="join" hidden>
+            <label>
+              <span>Your Name<span class="req-star">*</span></span>
+              <input type="text" name="joinPlayerName" placeholder="Jane Doe" required />
+            </label>
+
+            <fieldset class="checkbox-group" id="joinAvailabilityGroup">
+              <legend>Which days are you available?<span class="req-star">*</span></legend>
+              <div class="checkbox-options">
+                <label class="checkbox-label">
+                  <input type="checkbox" name="availability" value="14/08" />
+                  <span class="checkbox-custom">14/08 (Fri)</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="availability" value="15/08" />
+                  <span class="checkbox-custom">15/08 (Sat)</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="availability" value="16/08" />
+                  <span class="checkbox-custom">16/08 (Sun)</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <label>
+              Comments
+              <textarea name="joinComments" placeholder="Only available after 4pm on 15/08, etc..." rows="3"></textarea>
+            </label>
+
+            <div class="stage-actions">
+              <button class="nav-button" type="button" data-stage-back="2">◀</button>
+              <button id="submitButtonJoin" class="nav-button" type="submit">✓</button>
+            </div>
+          </section>
+
         </form>
+
         <div id="submissionOverlay" class="submission-overlay">
           <div class="animation-container">
             <lottie-player id="savingAnim" class="lottie-anim"
-              src="https://lottie.host/831636a3-6cc0-459f-8a24-1758cda83090/IitX4LN06D.json" loop autoplay></lottie-player>
+              src="https://lottie.host/831636a3-6cc0-459f-8a24-1758cda83090/IitX4LN06D.json" loop
+              autoplay></lottie-player>
             <lottie-player id="successAnim" class="lottie-anim hidden"
               src="https://lottie.host/1a4a12e4-3842-46c5-a979-d795db5c0d5a/KE7bWPQgvy.json"></lottie-player>
           </div>
+          <div id="teamTagDisplay" class="team-tag-display hidden">
+            <strong id="teamTagValue" class="team-tag-value"></strong>
+            <p id="teamTagHint" class="team-tag-hint">This is your team's tag. Share it with your teammates so they can
+              join!</p>
+          </div>
         </div>
+
       </section>
     </section>
   </main>

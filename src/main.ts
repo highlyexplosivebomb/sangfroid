@@ -1,107 +1,134 @@
-import { saveTeamSignup, sangfroidConfig } from './supabase';
-import { buildSignupPayload, isStageComplete, type SignupStage } from './signup';
+import { getTeamByTag, saveTeamCreate, saveTeamJoin } from './supabase';
+import {
+  buildCreatePayload,
+  buildJoinPayload,
+  getCheckedValues,
+  type SignupStage,
+  type SignupType,
+} from './signup';
 import { initDigitalStopwatch } from './stopwatch';
 import '@lottiefiles/lottie-player';
+import {
+  getRequiredElement,
+  shakeElement,
+  type LottiePlayer,
+  getActiveSubmitBtn,
+  getActiveInvalidInputs,
+  showSubmissionOverlay,
+  transitionToSuccess,
+  handleSubmissionError,
+} from './dom';
 
-function getRequiredElement<T extends Element>(selector: string): T {
-  const element = document.querySelector<T>(selector);
-  if (!element) {
-    throw new Error(`Required element missing: ${selector}`);
-  }
-  return element;
-}
-
-const landingScreen = getRequiredElement<HTMLDivElement>('#landingScreen');
+const landingScreen = getRequiredElement<HTMLElement>('#landingScreen');
 const openFormButton = getRequiredElement<HTMLButtonElement>('#openFormButton');
 const signupFormPanel = getRequiredElement<HTMLElement>('#signupFormPanel');
 const signupForm = getRequiredElement<HTMLFormElement>('#signupForm');
-const submitButton = getRequiredElement<HTMLButtonElement>('#submitButton');
-const digitalDisplay = getRequiredElement<HTMLDivElement>('#digitalDisplay');
+const digitalDisplay = getRequiredElement<HTMLElement>('#digitalDisplay');
+const submissionOverlay = getRequiredElement<HTMLElement>('#submissionOverlay');
+const savingAnim = getRequiredElement<LottiePlayer>('#savingAnim');
+const successAnim = getRequiredElement<LottiePlayer>('#successAnim');
+const teamTagDisplay = getRequiredElement<HTMLElement>('#teamTagDisplay');
+const teamTagValue = getRequiredElement<HTMLElement>('#teamTagValue');
+const teamTagHint = getRequiredElement<HTMLElement>('#teamTagHint');
+const joinTagInput = getRequiredElement<HTMLInputElement>('input[name="teamTag"]');
+const joinTagSubmit = getRequiredElement<HTMLButtonElement>('#joinTagSubmit');
 
-const submissionOverlay = getRequiredElement<HTMLDivElement>('#submissionOverlay');
-const savingAnim = getRequiredElement<Element>('#savingAnim') as any;
-const successAnim = getRequiredElement<Element>('#successAnim') as any;
-
-const teammateCountGroup = getRequiredElement<HTMLFieldSetElement>('#teammateCountGroup');
-const teammateNameInputs = getRequiredElement<HTMLDivElement>('#teammateNameInputs');
-const playerTwoLabel = getRequiredElement<HTMLLabelElement>('#playerTwoLabel');
-const playerTwoInput = getRequiredElement<HTMLInputElement>('#playerTwoInput');
-const playerThreeLabel = getRequiredElement<HTMLLabelElement>('#playerThreeLabel');
-const playerThreeInput = getRequiredElement<HTMLInputElement>('#playerThreeInput');
-
-const stageSections = Array.from(document.querySelectorAll<HTMLElement>('[data-signup-stage]'));
-const backButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-stage-back]'));
+const stageSections = document.querySelectorAll<HTMLElement>('[data-signup-stage]');
 
 let hasOpenedForm = false;
 let currentStage: SignupStage = 1;
-let resolvedGameId = 0;
+let signUpType: SignupType | undefined = undefined;
+let gameId = 0;
+let teamId = 0;
 
 const stopwatch = initDigitalStopwatch(digitalDisplay);
 
-teammateCountGroup.addEventListener('change', (e) => {
-  const target = e.target as HTMLInputElement;
-  if (target.name !== 'extraTeammates') {
-    return;
+const GAME_CODES: Record<string, number> = {};
+for (const [envKey, id] of [
+  ['VITE_GAME_CODE_1', 1],
+  ['VITE_GAME_CODE_2', 2],
+  ['VITE_GAME_CODE_3', 3],
+] as const) {
+  const code = import.meta.env[envKey]?.trim().toUpperCase();
+  if (code) {
+    GAME_CODES[code] = id;
   }
-  const count = Number(target.value);
-
-  teammateNameInputs.classList.toggle('hidden', count === 0);
-
-  playerTwoLabel.classList.toggle('hidden', count < 1);
-  playerTwoInput.required = count >= 1;
-  if (count < 1) {
-    playerTwoInput.value = '';
-  }
-
-  playerThreeLabel.classList.toggle('hidden', count < 2);
-  playerThreeInput.required = count >= 2;
-  if (count < 2) {
-    playerThreeInput.value = '';
-  }
-});
-
-function showErrorOnInput(input: Element | null): void {
-  if (!input) {
-    return;
-  }
-
-  input.classList.remove('error');
-  void (input as HTMLElement).offsetWidth;
-  input.classList.add('error');
 }
 
 signupForm.addEventListener('input', (event) => {
   const target = event.target as HTMLElement;
-  if (target.classList.contains('error')) {
-    target.classList.remove('error');
-  }
+  target.classList.remove('error');
+  target.closest('.checkbox-group')?.classList.remove('error');
 });
 
-function syncStageState(): void {
+function syncStageVisibility(): void {
   stageSections.forEach((section) => {
     const stage = Number(section.dataset.signupStage) as SignupStage;
-    const isActive = stage === currentStage;
+    const sectionSignupType = section.dataset.signupType as SignupType | undefined;
+    const isActive = stage === currentStage && (!sectionSignupType || sectionSignupType === signUpType);
+
     section.hidden = !isActive;
-    section.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input, button').forEach((control) => {
-      control.disabled = !isActive;
-    });
+    section
+      .querySelectorAll<HTMLInputElement | HTMLButtonElement | HTMLTextAreaElement>(
+        'input, button, textarea'
+      )
+      .forEach((control) => {
+        control.disabled = !isActive;
+      });
   });
 }
 
 function setStage(stage: SignupStage): void {
   currentStage = stage;
-  syncStageState();
+  syncStageVisibility();
 }
 
-backButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    setStage(Number(button.dataset.stageBack) as SignupStage);
+document.querySelectorAll<HTMLButtonElement>('[data-stage-back]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    setStage(Number(btn.dataset.stageBack) as SignupStage);
   });
+});
+
+document.querySelectorAll<HTMLButtonElement>('[data-choice]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    signUpType = btn.dataset.choice as SignupType;
+    setStage(3);
+  });
+});
+
+async function handleJoinTag(): Promise<void> {
+  const tag = joinTagInput.value.trim().toUpperCase();
+  if (!tag) {
+    shakeElement(joinTagInput);
+    return;
+  }
+
+  joinTagSubmit.disabled = true;
+  const resolvedTeamId = await getTeamByTag(tag);
+  if (!resolvedTeamId) {
+    shakeElement(joinTagInput);
+    return;
+  }
+  teamId = resolvedTeamId;
+  signUpType = 'join';
+  setStage(4);
+
+  joinTagSubmit.disabled = false;
+}
+
+joinTagSubmit.addEventListener('click', handleJoinTag);
+joinTagInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    handleJoinTag();
+  }
 });
 
 function revealForm(): void {
   signupForm.reset();
-  signupFormPanel.removeAttribute('style');
+  signUpType = undefined;
+  gameId = 0;
+  teamId = 0;
   signupFormPanel.classList.add('visible');
   setStage(1);
 }
@@ -110,97 +137,115 @@ openFormButton.addEventListener('click', () => {
   if (hasOpenedForm) {
     return;
   }
-
   hasOpenedForm = true;
   stopwatch.stopAndShowResult();
 
-  window.setTimeout(() => {
+  setTimeout(() => {
     landingScreen.classList.add('fly-away');
-    const fallbackTimer = window.setTimeout(revealForm, 1100);
+    const fallbackTimer = setTimeout(revealForm, 1100);
     landingScreen.addEventListener('transitionend', () => {
-      window.clearTimeout(fallbackTimer);
+      clearTimeout(fallbackTimer);
       revealForm();
     }, { once: true });
   }, 100);
 });
 
+
+
 signupForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  if (!signupForm.checkValidity()) {
-    const emailInput = signupForm.querySelector<HTMLInputElement>('input[type="email"]');
-    if (emailInput && emailInput.validity.typeMismatch) {
-      showErrorOnInput(emailInput);
-    } else {
-      const invalidInputs = document.querySelectorAll('.signup-stage:not([hidden]) input:invalid');
-      invalidInputs.forEach(input => showErrorOnInput(input));
-    }
-    return;
-  }
-
-  const formData = new FormData();
-  Array.from(signupForm.elements).forEach((element) => {
-    const input = element as HTMLInputElement;
-    if (input.name) {
-      formData.append(input.name, input.value);
-    }
-  });
-
   if (currentStage === 1) {
-    const code = formData.get('gameCode')?.toString().trim().toUpperCase() ?? '';
-    const gameCodes: Record<string, number> = {};
-    if (import.meta.env.VITE_GAME_CODE_1) {
-      gameCodes[import.meta.env.VITE_GAME_CODE_1.trim().toUpperCase()] = 1;
-    }
-    if (import.meta.env.VITE_GAME_CODE_2) {
-      gameCodes[import.meta.env.VITE_GAME_CODE_2.trim().toUpperCase()] = 2;
-    }
-    if (import.meta.env.VITE_GAME_CODE_3) {
-      gameCodes[import.meta.env.VITE_GAME_CODE_3.trim().toUpperCase()] = 3;
-    }
+    const codeInput = signupForm.querySelector<HTMLInputElement>('input[name="gameCode"]');
+    const code = codeInput?.value.trim().toUpperCase() ?? '';
+    const matchedGameId = GAME_CODES[code];
 
-    const gameId = gameCodes[code];
-    if (gameId === undefined) {
-      showErrorOnInput(document.querySelector('input[name="gameCode"]'));
+    if (!matchedGameId) {
+      shakeElement(codeInput);
       return;
     }
-    resolvedGameId = gameId;
-  }
-
-  const payload = buildSignupPayload(formData, resolvedGameId);
-
-  if (!isStageComplete(currentStage, payload, formData)) {
-    showErrorOnInput(document.querySelector('.signup-stage:not([hidden]) input:invalid') ?? document.querySelector('.signup-stage:not([hidden]) input'));
+    gameId = matchedGameId;
+    setStage(2);
     return;
   }
 
-  if (currentStage < 3) {
-    setStage((currentStage + 1) as SignupStage);
+  if (currentStage === 3) {
+    const invalidInputs = getActiveInvalidInputs(signupForm);
+    if (invalidInputs.length > 0) {
+      invalidInputs.forEach((input) => shakeElement(input));
+      return;
+    }
+    setStage(4);
     return;
   }
 
-  submitButton.disabled = true;
+  if (currentStage === 4) {
+    if (signUpType === 'create') {
+      const availability = getCheckedValues(signupForm, 'availability');
+      if (availability.length === 0) {
+        shakeElement(signupForm.querySelector('#availabilityGroup'));
+        return;
+      }
 
-  submissionOverlay.classList.add('visible');
-  savingAnim.classList.remove('hidden', 'fly-away');
-  savingAnim.play();
+      const submitBtn = getActiveSubmitBtn(signupForm);
+      if (submitBtn) {
+        submitBtn.disabled = true;
+      }
 
-  successAnim.stop();
-  successAnim.classList.add('hidden');
+      showSubmissionOverlay(submissionOverlay, savingAnim, successAnim, teamTagDisplay);
 
-  try {
-    await saveTeamSignup(payload, sangfroidConfig);
+      try {
+        const payload = await buildCreatePayload(signupForm, gameId, async (tag) => {
+          return (await getTeamByTag(tag)) !== undefined;
+        });
 
-    await new Promise(resolve => setTimeout(resolve, 600));
-    savingAnim.classList.add('hidden');
+        await saveTeamCreate(payload);
+        await transitionToSuccess(savingAnim, successAnim);
+        teamTagValue.textContent = payload.team_tag;
+        teamTagValue.classList.remove('hidden');
+        teamTagHint.textContent = "This is your team's tag. Share it with your teammates so they can join!";
+        teamTagDisplay.classList.remove('hidden');
+      } catch {
+        handleSubmissionError(signupForm, submissionOverlay, submitBtn);
+      }
 
-    successAnim.classList.remove('hidden');
-    successAnim.play();
-  } catch (error) {
-    showErrorOnInput(document.querySelector('.signup-stage:not([hidden]) input'));
-    submitButton.disabled = false;
-    submissionOverlay.classList.remove('visible');
+      return;
+    }
+
+    if (signUpType === 'join') {
+      const invalidInputs = getActiveInvalidInputs(signupForm);
+      if (invalidInputs.length > 0) {
+        invalidInputs.forEach((input) => shakeElement(input));
+        return;
+      }
+
+      const availability = getCheckedValues(signupForm, 'joinAvailability');
+      if (availability.length === 0) {
+        shakeElement(signupForm.querySelector('#joinAvailabilityGroup'));
+        return;
+      }
+
+      const payload = buildJoinPayload(signupForm, teamId);
+      const submitBtn = getActiveSubmitBtn(signupForm);
+      if (submitBtn) {
+        submitBtn.disabled = true;
+      }
+
+      showSubmissionOverlay(submissionOverlay, savingAnim, successAnim, teamTagDisplay);
+
+      try {
+        await saveTeamJoin(payload);
+        await transitionToSuccess(savingAnim, successAnim);
+        teamTagValue.classList.add('hidden');
+        teamTagHint.textContent = "You're in! You can close this page now.";
+        teamTagDisplay.classList.remove('hidden');
+      } catch {
+        handleSubmissionError(signupForm, submissionOverlay, submitBtn);
+      }
+
+      return;
+    }
   }
 });
 
-syncStageState();
+syncStageVisibility();
