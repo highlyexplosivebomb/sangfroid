@@ -1,0 +1,111 @@
+#landingView {
+  display: grid;
+  place-items: center;
+  width: 100%;
+}
+
+.landing-screen {
+  grid-area: 1 / 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xl);
+  width: 100%;
+  max-width: 460px;
+  transition: transform 900ms cubic-bezier(.2, .82, .18, 1), opacity 520ms ease;
+  will-change: transform, opacity;
+
+  &.fly-away {
+    transform: translateY(150vh) rotate(18deg) scale(0.58);
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.definition-card {
+  background-color: #000000;
+  color: #ffffff;
+  padding: var(--spacing-lg);
+  border-radius: 12px;
+  font-family: "Georgia", "Times New Roman", serif;
+  text-align: center;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  width: 100%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+
+.watch-body {
+  width: 100%;
+  max-width: 380px;
+  height: 140px;
+  border-radius: 20px;
+  background: radial-gradient(circle at 35% 35%, #2a2d2c, #0a0c0b);
+  border: 8px solid #1f2421;
+  box-shadow:
+    inset 0 0 25px rgba(0, 0, 0, 0.9),
+    inset 0 0 8px rgba(255, 255, 255, 0.15),
+    0 24px 48px rgba(0, 0, 0, 0.4);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.digital-display {
+  font-family: var(--font-family-mono);
+  font-size: 5.5rem;
+  font-weight: 700;
+  color: var(--color-danger);
+  line-height: 1;
+  text-shadow: 0 0 16px rgba(185, 28, 28, 0.8), 0 0 32px rgba(185, 28, 28, 0.4);
+  letter-spacing: 2px;
+  pointer-events: none;
+
+  &.pass {
+    color: #22c55e;
+    text-shadow: 0 0 16px rgba(34, 197, 94, 0.8), 0 0 32px rgba(34, 197, 94, 0.4);
+  }
+}
+
+.login-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.landing-action-btn {
+  flex: 1;
+  padding: 14px 24px;
+  border: 3px solid #1f2421;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  color: #ffffff;
+  font-family: var(--font-family-accent);
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+
+  &:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.15);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  }
+
+  &:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  &.alt {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+}

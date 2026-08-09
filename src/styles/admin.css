@@ -1,0 +1,291 @@
+.review-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: 12px 14px;
+  border: 2px solid var(--color-panel-border);
+  border-radius: 12px;
+  background: var(--color-bg);
+  margin-bottom: var(--spacing-sm);
+  transition: border-color var(--transition-fast);
+  color: var(--color-text);
+}
+
+.review-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.review-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.review-team-name {
+  font-family: var(--font-family-accent);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.review-challenge-name {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.review-points {
+  font-family: var(--font-family-base);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.review-photo {
+  max-width: 100%;
+  max-height: 250px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #f3f4f6;
+}
+
+.review-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.review-approve-btn,
+.review-reject-btn,
+.admin-btn-primary,
+.admin-btn-secondary,
+.admin-btn-danger {
+  flex: 1;
+  padding: 10px 14px;
+  border: 3px solid #1f2421;
+  border-radius: 8px;
+  font-family: var(--font-family-accent);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: transform var(--transition-fast), filter var(--transition-fast);
+  color: #ffffff;
+}
+
+.review-approve-btn:hover,
+.review-reject-btn:hover,
+.admin-btn-primary:hover,
+.admin-btn-secondary:hover,
+.admin-btn-danger:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.review-approve-btn:active,
+.review-reject-btn:active,
+.admin-btn-primary:active,
+.admin-btn-secondary:active,
+.admin-btn-danger:active {
+  transform: scale(0.97);
+}
+
+.review-approve-btn:disabled,
+.review-reject-btn:disabled,
+.admin-btn-primary:disabled,
+.admin-btn-secondary:disabled,
+.admin-btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+}
+
+.review-approve-btn,
+.admin-btn-primary {
+  background: linear-gradient(135deg, #166534, #14532d);
+}
+
+.review-reject-btn,
+.admin-btn-danger {
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+}
+
+.admin-btn-secondary {
+  background: linear-gradient(135deg, #1f2937, #111827);
+}
+
+.leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  border: 2px solid var(--color-panel-border);
+  border-radius: 12px;
+  background: var(--color-bg);
+  gap: var(--spacing-md);
+  color: var(--color-text);
+}
+
+.leaderboard-rank {
+  font-family: var(--font-family-base);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-text-muted);
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.leaderboard-row:nth-child(1) .leaderboard-rank {
+  color: #d97706;
+}
+
+.leaderboard-row:nth-child(2) .leaderboard-rank {
+  color: #9ca3af;
+}
+
+.leaderboard-row:nth-child(3) .leaderboard-rank {
+  color: #b45309;
+}
+
+.leaderboard-team {
+  flex: 1;
+  min-width: 0;
+}
+
+.leaderboard-team-name {
+  font-family: var(--font-family-accent);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.leaderboard-team-tag {
+  font-family: var(--font-family-base);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+}
+
+.leaderboard-score {
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.admin-controls-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md);
+}
+
+.admin-submissions-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+}
+
+.admin-control-group {
+  background: var(--color-bg);
+  border: 2px solid var(--color-panel-border);
+  border-radius: 12px;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  color: var(--color-text);
+}
+
+.admin-control-group h3 {
+  font-family: var(--font-family-accent);
+  text-transform: uppercase;
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.admin-control-group label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 600;
+}
+
+.admin-control-group input[type="number"] {
+  width: 80px;
+  text-align: center;
+  font-family: var(--font-family-base);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.admin-control-group textarea {
+  width: 100%;
+  height: 100px;
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+}
+
+.admin-control-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.admin-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--spacing-xl);
+  font-family: var(--font-family-accent);
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+}
+
+.admin-game-selector {
+  gap: 8px;
+}
+
+.admin-game-select {
+  background: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 2px 4px;
+}
+
+.admin-game-select option {
+  color: #000;
+}
+
+.admin-logout-btn {
+  font-family: var(--font-family-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
