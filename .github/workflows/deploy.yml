@@ -45,7 +45,9 @@ jobs:
           VITE_GAME_CODE_1: ${{ secrets.VITE_GAME_CODE_1 }}
           VITE_GAME_CODE_2: ${{ secrets.VITE_GAME_CODE_2 }}
           VITE_GAME_CODE_3: ${{ secrets.VITE_GAME_CODE_3 }}
-        run: npm run build
+        run: |
+          npm run build
+          cp dist/index.html dist/404.html
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
