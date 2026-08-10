@@ -1,6 +1,7 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getTeamByTag, saveTeamCreate, saveTeamJoin, getTeamMemberCount } from '../shared/supabase';
+import dayjs from 'dayjs';
 import {
   buildCreatePayload,
   buildJoinPayload,
@@ -353,7 +354,8 @@ loginForm.addEventListener('submit', async (e) => {
       loginAdmin(undefined);
       navigateTo(SangfroidView.AdminPortal);
     } else {
-      loginTeam(resolvedTeam.id, tag, resolvedTeam.name, resolvedTeam.game_id);
+      const parsedTimestamp = resolvedTeam.timestamp ? dayjs(resolvedTeam.timestamp).valueOf() : 0;
+      loginTeam(resolvedTeam.id, tag, resolvedTeam.name, resolvedTeam.game_id, parsedTimestamp);
       navigateTo(SangfroidView.PlayerPortal);
     }
   } catch {

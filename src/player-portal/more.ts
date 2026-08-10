@@ -15,29 +15,22 @@ export function renderMoreTab(container: HTMLElement | null): void {
     return;
   }
 
+  const wrapper = document.createElement('div');
+  wrapper.className = 'more-menu-wrapper';
+
   const menuList = document.createElement('div');
   menuList.className = 'more-menu-list';
-  menuList.style.display = 'flex';
-  menuList.style.flexDirection = 'column';
 
   const createMenuItem = (label: string, iconHtml: string, onClick: () => void) => {
     const item = document.createElement('div');
-    item.style.display = 'flex';
-    item.style.alignItems = 'center';
-    item.style.gap = '1rem';
-    item.style.padding = '0.8rem 1.5rem';
-    item.style.cursor = 'pointer';
-    item.style.fontSize = '1.3rem';
-    item.style.fontWeight = 'bold';
-    item.style.borderBottom = '1px solid var(--color-panel-border)';
+    item.className = 'more-menu-item';
     item.addEventListener('click', onClick);
 
     const icon = createSvgIcon(iconHtml);
-    icon.style.width = '24px';
-    icon.style.height = '24px';
-    icon.style.color = 'var(--text-muted)';
+    icon.classList.add('more-menu-icon');
 
     const text = document.createElement('div');
+    text.className = 'more-menu-text';
     text.textContent = label;
 
     item.appendChild(icon);
@@ -72,27 +65,14 @@ export function renderMoreTab(container: HTMLElement | null): void {
   const actualRank = 1 + teamsAhead.length;
 
   const rankingSection = document.createElement('div');
-  rankingSection.style.margin = '0';
-  rankingSection.style.padding = '1.5rem 1.5rem 1rem 1.5rem';
-  rankingSection.style.borderBottom = '1px solid var(--color-panel-border)';
-  rankingSection.style.display = 'flex';
-  rankingSection.style.flexDirection = 'column';
-  rankingSection.style.alignItems = 'flex-start';
-  rankingSection.style.gap = '0.25rem';
+  rankingSection.className = 'more-ranking-section';
 
   const rankTitle = document.createElement('div');
+  rankTitle.className = 'more-rank-title';
   rankTitle.textContent = `Ranking #${actualRank}`;
-  rankTitle.style.fontFamily = 'var(--font-family-accent)';
-  rankTitle.style.fontSize = '2.2rem';
-  rankTitle.style.fontWeight = '700';
-  rankTitle.style.textTransform = 'uppercase';
-  rankTitle.style.letterSpacing = '1px';
-  rankTitle.style.color = 'var(--color-text)';
 
   const rankSub = document.createElement('div');
-  rankSub.style.fontSize = '0.9rem';
-  rankSub.style.color = 'var(--color-text-muted)';
-  rankSub.style.textAlign = 'left';
+  rankSub.className = 'more-rank-sub';
 
   if (actualRank === 1) {
     rankSub.textContent = "You're ahead of everyone else!";
@@ -110,7 +90,14 @@ export function renderMoreTab(container: HTMLElement | null): void {
   menuList.appendChild(rulesBtn);
   menuList.appendChild(yourTeamBtn);
   menuList.appendChild(logoutBtn);
-  container.appendChild(menuList);
+  wrapper.appendChild(menuList);
+
+  const logo = document.createElement('img');
+  logo.src = '/sangfroid.png';
+  logo.className = 'more-logo';
+  wrapper.appendChild(logo);
+
+  container.appendChild(wrapper);
 }
 
 function renderYourTeam(container: HTMLElement): void {
@@ -120,11 +107,7 @@ function renderYourTeam(container: HTMLElement): void {
   if (!session) return;
 
   const teamContainer = document.createElement('div');
-  teamContainer.className = 'your-team-container';
-  teamContainer.style.padding = '3rem 1.25rem 1.25rem 1.25rem';
-  teamContainer.style.display = 'flex';
-  teamContainer.style.flexDirection = 'column';
-  teamContainer.style.position = 'relative';
+  teamContainer.className = 'your-team-container more-team-container';
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'challenge-detail-close-btn';
@@ -139,14 +122,18 @@ function renderYourTeam(container: HTMLElement): void {
   teamContainer.appendChild(closeBtn);
 
   const teamNameHeader = document.createElement('h3');
+  teamNameHeader.className = 'more-team-header';
+  teamNameHeader.style.marginBottom = '0';
   teamNameHeader.textContent = session.name || 'Your Team';
-  teamNameHeader.style.margin = '0 0 1rem 0';
-  teamNameHeader.style.padding = '0';
-  teamNameHeader.style.fontSize = '2rem';
-  teamNameHeader.style.fontFamily = 'var(--font-family-accent)';
-  teamNameHeader.style.textTransform = 'uppercase';
-  teamNameHeader.style.letterSpacing = '1px';
   teamContainer.appendChild(teamNameHeader);
+
+  const createdDate = document.createElement('div');
+  createdDate.style.color = 'var(--color-text-muted)';
+  createdDate.style.fontSize = '0.9rem';
+  createdDate.style.marginBottom = '1.5rem';
+  const dateObj = new Date(session.timestamp);
+  createdDate.textContent = `Created on ${dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  teamContainer.appendChild(createdDate);
 
   container.appendChild(teamContainer);
 
@@ -162,40 +149,24 @@ function renderYourTeam(container: HTMLElement): void {
 
     const createSlot = (title: string, name: string | null, isLeader: boolean) => {
       const slot = document.createElement('div');
-      slot.style.display = 'flex';
-      slot.style.flexDirection = 'column';
-      slot.style.padding = '1rem 1.25rem';
-      slot.style.background = 'rgba(255, 255, 255, 0.5)';
-      slot.style.border = '2px solid var(--color-panel-border)';
-      slot.style.borderRadius = '10px';
+      slot.className = 'more-team-slot';
 
       const titleEl = document.createElement('div');
+      titleEl.className = 'more-team-slot-title';
       titleEl.textContent = title;
-      titleEl.style.fontSize = '0.8rem';
-      titleEl.style.color = 'var(--color-text-muted)';
-      titleEl.style.textTransform = 'uppercase';
-      titleEl.style.letterSpacing = '1px';
-      titleEl.style.marginBottom = '0.25rem';
-      titleEl.style.fontFamily = 'var(--font-family-accent)';
       slot.appendChild(titleEl);
 
       const nameRow = document.createElement('div');
-      nameRow.style.display = 'flex';
-      nameRow.style.alignItems = 'center';
-      nameRow.style.justifyContent = 'space-between';
+      nameRow.className = 'more-team-slot-name-row';
 
-      const nameEl = document.createElement('div');
+      const nameEl = document.createElement('h4');
+      nameEl.className = 'more-team-slot-name';
       nameEl.textContent = name || 'Empty Slot';
-      nameEl.style.fontSize = '1.2rem';
-      nameEl.style.fontWeight = name ? '700' : '500';
-      nameEl.style.color = name ? 'var(--color-text)' : 'var(--color-text-muted)';
       nameRow.appendChild(nameEl);
 
       if (isLeader && name) {
         const crown = createSvgIcon('<path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"></path><path d="M3 22h18"></path>');
-        crown.style.width = '20px';
-        crown.style.height = '20px';
-        crown.style.color = '#eab308'; // yellow-500
+        crown.classList.add('more-team-leader-crown');
         nameRow.appendChild(crown);
       }
 
@@ -204,15 +175,18 @@ function renderYourTeam(container: HTMLElement): void {
     };
 
     const slotsContainer = document.createElement('div');
-    slotsContainer.style.display = 'flex';
-    slotsContainer.style.flexDirection = 'column';
-    slotsContainer.style.gap = '0.75rem';
+    slotsContainer.className = 'more-team-slots-container';
 
-    slotsContainer.appendChild(createSlot('Team Leader', leader?.name || null, true));
-    slotsContainer.appendChild(createSlot('Teammate', teammates[0]?.name || null, false));
-    slotsContainer.appendChild(createSlot('Teammate', teammates[1]?.name || null, false));
+    slotsContainer.appendChild(createSlot('Leader', leader?.name || null, true));
+    slotsContainer.appendChild(createSlot('Player', teammates[0]?.name || null, false));
+    slotsContainer.appendChild(createSlot('Player', teammates[1]?.name || null, false));
 
     teamContainer.appendChild(slotsContainer);
+
+    const footerText = document.createElement('div');
+    footerText.className = 'more-team-footer-text';
+    footerText.textContent = 'To make changes to your team (e.g. removing a player), message John.';
+    teamContainer.appendChild(footerText);
   }).catch(err => {
     const loadingErrorText = document.createElement('div');
     loadingErrorText.textContent = 'Error loading team data.';
@@ -225,12 +199,7 @@ async function renderRules(container: HTMLElement): Promise<void> {
   container.innerHTML = '';
 
   const rulesContainer = document.createElement('div');
-  rulesContainer.className = 'rules-container';
-  rulesContainer.style.padding = '3rem 1.25rem 1.25rem 1.25rem';
-  rulesContainer.style.display = 'flex';
-  rulesContainer.style.flexDirection = 'column';
-  rulesContainer.style.height = '100%';
-  rulesContainer.style.position = 'relative';
+  rulesContainer.className = 'rules-container more-rules-container';
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'challenge-detail-close-btn';
@@ -245,9 +214,7 @@ async function renderRules(container: HTMLElement): Promise<void> {
   rulesContainer.appendChild(closeBtn);
 
   const contentArea = document.createElement('div');
-  contentArea.className = 'rules-content';
-  contentArea.style.overflowY = 'auto';
-  contentArea.style.flex = '1';
+  contentArea.className = 'rules-content more-rules-content';
 
   contentArea.innerHTML = await marked.parse(rulesMd);
   rulesContainer.appendChild(contentArea);

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { CreateTeamPayload, JoinTeamPayload } from '../landing/signup';
-import type { GameState } from './store';
+import type { GameState, Team, Submission } from './store';
 
 export const TEAM_TABLE = import.meta.env.VITE_SUPABASE_TEAM_TABLE ?? '';
 export const PLAYER_TABLE = import.meta.env.VITE_SUPABASE_PLAYER_TABLE ?? '';
@@ -40,10 +40,10 @@ export async function fetchTeamPlayers(teamId: number): Promise<{ name: string; 
   return data ?? [];
 }
 
-export async function getTeamByTag(tag: string): Promise<{ id: number; game_id: number; name: string; pin: string } | undefined> {
+export async function getTeamByTag(tag: string): Promise<Team | undefined> {
   const { data, error } = await supabase
     .from(TEAM_TABLE)
-    .select('id, game_id, name, pin')
+    .select('id, game_id, name, tag, pin, timestamp:created_at')
     .eq('tag', tag)
     .maybeSingle();
 
@@ -51,9 +51,7 @@ export async function getTeamByTag(tag: string): Promise<{ id: number; game_id: 
     throw new Error(error.message ?? 'Unable to look up the team tag.');
   }
 
-  return data
-    ? { id: data.id as number, game_id: data.game_id as number, name: data.name as string, pin: data.pin as string }
-    : undefined;
+  return data ?? undefined;
 }
 
 export async function fetchGames(): Promise<{ id: number }[]> {
@@ -69,10 +67,10 @@ export async function fetchGames(): Promise<{ id: number }[]> {
   return data ?? [];
 }
 
-export async function fetchTeams(gameId: number): Promise<{ id: number; tag: string; name: string }[]> {
+export async function fetchTeams(gameId: number): Promise<Team[]> {
   const { data, error } = await supabase
     .from(TEAM_TABLE)
-    .select('id, tag, name')
+    .select('id, game_id, name, tag, pin, timestamp:created_at')
     .eq('game_id', gameId);
 
   if (error) {
@@ -188,14 +186,6 @@ export async function insertAnnouncement(gameId: number, message: string): Promi
   return data.id;
 }
 
-interface SubmissionInsert {
-  gameId: number;
-  challengeId: number;
-  teamId: number;
-  value: string;
-  status: string;
-  timestamp: number;
-}
 
 export async function fetchSubmissions(gameId: number, asAdmin: boolean, teamId?: number) {
   if (asAdmin) {
@@ -243,11 +233,11 @@ export async function fetchSubmissions(gameId: number, asAdmin: boolean, teamId?
   }));
 }
 
-export async function insertSubmission(sub: SubmissionInsert): Promise<number | null> {
+export async function insertSubmission(gameId: number, sub: Omit<Submission, 'id'>): Promise<number | null> {
   const { data, error } = await supabase
     .from(SUBMISSION_TABLE)
     .insert({
-      game_id: sub.gameId,
+      game_id: gameId,
       challenge_id: sub.challengeId,
       team_id: sub.teamId,
       value: sub.value,

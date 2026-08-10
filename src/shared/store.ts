@@ -45,11 +45,21 @@ export interface Submission {
   status: SubmissionStatus;
 }
 
+export interface Team {
+  id: number;
+  game_id: number;
+  name: string;
+  tag: string;
+  pin: string;
+  timestamp: string;
+}
+
 export interface TeamSession {
   id: number;
   tag: string;
   name: string;
   gameId: number;
+  timestamp: number;
 }
 
 export const GameStatus = {
@@ -74,8 +84,8 @@ let currentTeam: TeamSession | undefined;
 let isAdmin = false;
 let adminGameId: number | undefined;
 
-export function loginTeam(id: number, tag: string, name: string, gameId: number): void {
-  currentTeam = { id, tag, name, gameId };
+export function loginTeam(id: number, tag: string, name: string, gameId: number, timestamp: number): void {
+  currentTeam = { id, tag, name, gameId, timestamp };
   startPolling();
 }
 
@@ -360,14 +370,7 @@ export async function addSubmission(
   cachedSubmissions.push(optimisticSub);
   dataVersion++;
 
-  const id = await insertSubmission({
-    gameId,
-    challengeId: sub.challengeId,
-    teamId: sub.teamId,
-    value: sub.value,
-    status: sub.status,
-    timestamp: sub.timestamp,
-  });
+  const id = await insertSubmission(gameId, sub);
 
   if (id) {
     const idx = cachedSubmissions.findIndex(s => s.id === optimisticId);

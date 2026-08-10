@@ -99,7 +99,6 @@ textarea {
   }
 }
 
-/* 16px minimum prevents iOS Safari auto-zoom on focus */
 input:not([type="checkbox"]) {
   font-size: max(1rem, 16px);
 }

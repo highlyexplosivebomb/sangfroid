@@ -20,6 +20,7 @@
   "dependencies": {
     "@lottiefiles/lottie-player": "^2.0.12",
     "@supabase/supabase-js": "^2.110.3",
+    "dayjs": "^1.11.21",
     "leaflet": "^1.9.4",
     "marked": "^18.0.9"
   }
