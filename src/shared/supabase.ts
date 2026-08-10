@@ -27,6 +27,19 @@ export async function getTeamMemberCount(teamId: number): Promise<number> {
   return count ?? 0;
 }
 
+export async function fetchTeamPlayers(teamId: number): Promise<{ name: string; is_leader: boolean }[]> {
+  const { data, error } = await supabase
+    .from(PLAYER_TABLE)
+    .select('name, is_leader')
+    .eq('team_id', teamId);
+
+  if (error) {
+    console.error('Error fetching team players:', error);
+    return [];
+  }
+  return data ?? [];
+}
+
 export async function getTeamByTag(tag: string): Promise<{ id: number; game_id: number; name: string; pin: string } | undefined> {
   const { data, error } = await supabase
     .from(TEAM_TABLE)

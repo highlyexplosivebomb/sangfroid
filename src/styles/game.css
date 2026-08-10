@@ -254,7 +254,7 @@
   white-space: nowrap;
 }
 
-.challenge-type-badge[data-type="input"] {
+.challenge-type-badge[data-type="answer"] {
   background: rgba(59, 130, 246, 0.1);
   color: #2563eb;
 }
@@ -262,6 +262,11 @@
 .challenge-type-badge[data-type="photo"] {
   background: rgba(168, 85, 247, 0.1);
   color: #7c3aed;
+}
+
+.challenge-type-badge[data-type="unique"] {
+  background: rgba(234, 179, 8, 0.15);
+  color: #ca8a04;
 }
 
 .challenge-status-badge {
@@ -288,6 +293,11 @@
 .challenge-status-badge[data-status="rejected"] {
   background: rgba(185, 28, 28, 0.1);
   color: var(--color-danger);
+}
+
+.challenge-status-badge[data-status="unsolved"] {
+  background: rgba(156, 163, 175, 0.15);
+  color: #4b5563;
 }
 
 .challenge-detail {
@@ -599,4 +609,36 @@
 
 .announcement-dismiss-btn:active {
   opacity: 0.8;
+}
+
+.rules-content {
+  line-height: 1.6;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  padding-bottom: 2rem;
+}
+
+.rules-content h2,
+.rules-content h3,
+.rules-content h4 {
+  font-family: var(--font-family-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-primary);
+}
+
+.rules-content p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.rules-content ul {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.rules-content li {
+  margin-bottom: 0.5rem;
 }

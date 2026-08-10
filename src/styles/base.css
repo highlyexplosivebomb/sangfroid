@@ -125,21 +125,6 @@ textarea {
   margin-inline-start: 4px;
 }
 
-.error-hint {
-  display: none;
-  font-size: 0.8rem;
-  color: var(--color-danger);
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 4px;
-}
-
-input:not(:placeholder-shown):invalid~.error-hint {
-  display: block;
-  animation: fadeSlideIn 300ms ease;
-}
-
 .map-background {
   position: absolute;
   inset: 0;

@@ -8,8 +8,9 @@ import {
 } from './supabase';
 
 export const ChallengeType = {
-  Input: 'input',
+  Answer: 'answer',
   Photo: 'photo',
+  Unique: 'unique',
 } as const;
 export type ChallengeType = (typeof ChallengeType)[keyof typeof ChallengeType];
 
@@ -414,6 +415,10 @@ export function getTeamPoints(teamId: number): number {
 
 export function getLeaderboard(): { id: number; tag: string; name: string; points: number }[] {
   const teamMap = new Map<number, { tag: string; name: string; points: number }>();
+
+  for (const [idStr, teamInfo] of Object.entries(cachedTeams)) {
+    teamMap.set(Number(idStr), { tag: teamInfo.tag, name: teamInfo.name, points: 0 });
+  }
 
   for (const sub of cachedSubmissions) {
     if (!teamMap.has(sub.teamId)) {

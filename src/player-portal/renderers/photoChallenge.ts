@@ -161,7 +161,7 @@ export function renderPhotoChallenge(
   } else if (existingSubmission?.status === SubmissionStatus.Approved) {
     feedbackSlot.appendChild(createFeedback('correct', `Submission approved - +${challenge.points} pts`));
   } else if (existingSubmission?.status === SubmissionStatus.Pending) {
-    feedbackSlot.appendChild(createFeedback('submitted', 'Submitted - pending review'));
+    feedbackSlot.appendChild(createFeedback('submitted', 'Submitted - under review. This may take a few mins.'));
   }
 
   btn.addEventListener('click', async () => {

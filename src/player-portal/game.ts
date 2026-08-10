@@ -13,6 +13,7 @@ import {
   type Challenge,
 } from '../shared/store';
 import { getRenderer } from './challenges';
+import { renderMoreTab } from './more';
 import { navigateTo, SangfroidView } from '../shared/router';
 import { initGameMap, destroyGameMap } from './map';
 import { createSvgIcon } from '../shared/svg';
@@ -21,6 +22,7 @@ import { formatTime } from '../shared/format';
 export const GameTab = {
   Map: 'map',
   Challenges: 'challenges',
+  More: 'more',
 } as const;
 export type GameTab = (typeof GameTab)[keyof typeof GameTab];
 
@@ -36,15 +38,16 @@ export type SortMode = (typeof SortMode)[keyof typeof SortMode];
 
 export const TypeFilter = {
   All: 'all',
-  Input: 'input',
+  Answer: 'answer',
   Photo: 'photo',
+  Limited: 'limited',
 } as const;
 export type TypeFilter = (typeof TypeFilter)[keyof typeof TypeFilter];
 
 let container: HTMLElement | null = null;
 let activeTab: GameTab = GameTab.Challenges;
-let panels: Record<GameTab, HTMLElement | null> = { map: null, challenges: null };
-let tabButtons: Record<GameTab, HTMLElement | null> = { map: null, challenges: null };
+let panels: Record<GameTab, HTMLElement | null> = { map: null, challenges: null, more: null };
+let tabButtons: Record<GameTab, HTMLElement | null> = { map: null, challenges: null, more: null };
 let pointsDisplay: HTMLElement | null = null;
 let timeDisplay: HTMLElement | null = null;
 
@@ -69,8 +72,8 @@ export function unmountGame(): void {
     container.innerHTML = '';
   }
   container = null;
-  panels = { map: null, challenges: null };
-  tabButtons = { map: null, challenges: null };
+  panels = { map: null, challenges: null, more: null };
+  tabButtons = { map: null, challenges: null, more: null };
   pointsDisplay = null;
   timeDisplay = null;
 
@@ -153,6 +156,11 @@ function renderShell(): void {
   panels.challenges.dataset.tab = 'challenges';
   tabContent.appendChild(panels.challenges);
 
+  panels.more = document.createElement('div');
+  panels.more.className = 'game-tab-panel';
+  panels.more.dataset.tab = 'more';
+  tabContent.appendChild(panels.more);
+
   shell.appendChild(tabContent);
 
   const tabBar = document.createElement('div');
@@ -160,9 +168,11 @@ function renderShell(): void {
 
   tabButtons.map = createTabButton(GameTab.Map, 'Map', '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>');
   tabButtons.challenges = createTabButton(GameTab.Challenges, 'Challenges', '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>');
+  tabButtons.more = createTabButton(GameTab.More, 'More', '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>');
 
   tabBar.appendChild(tabButtons.map);
   tabBar.appendChild(tabButtons.challenges);
+  tabBar.appendChild(tabButtons.more);
   shell.appendChild(tabBar);
 
   container.appendChild(shell);
@@ -203,6 +213,9 @@ function switchTab(tab: GameTab): void {
   }
   if (tab === GameTab.Challenges) {
     renderChallengesTab();
+  }
+  if (tab === GameTab.More) {
+    renderMoreTab(panels.more);
   }
 }
 
@@ -292,8 +305,9 @@ function renderChallengeList(): void {
   typeSelect.className = 'challenge-filter-select';
   typeSelect.innerHTML = `
     <option value="all" ${currentTypeFilter === 'all' ? 'selected' : ''}>All Types</option>
-    <option value="input" ${currentTypeFilter === 'input' ? 'selected' : ''}>Input</option>
+    <option value="answer" ${currentTypeFilter === 'answer' ? 'selected' : ''}>Answer</option>
     <option value="photo" ${currentTypeFilter === 'photo' ? 'selected' : ''}>Photo</option>
+    <option value="limited" ${currentTypeFilter === 'limited' ? 'selected' : ''}>Limited</option>
   `;
   typeSelect.addEventListener('change', (e) => {
     currentTypeFilter = (e.target as HTMLSelectElement).value as typeof currentTypeFilter;
@@ -380,21 +394,35 @@ function buildChallengeCard(challenge: Challenge, teamId: number): HTMLElement {
   meta.appendChild(pointsBadge);
   meta.appendChild(typeBadge);
 
-  if (submission) {
-    const statusBadge = document.createElement('span');
-    statusBadge.className = 'challenge-status-badge';
-    statusBadge.dataset.status = submission.status === 'approved' ? 'solved' : submission.status;
+  const statusBadge = document.createElement('span');
+  statusBadge.className = 'challenge-status-badge';
 
+  if (!submission) {
+    statusBadge.dataset.status = 'unsolved';
+    statusBadge.textContent = 'Unsolved';
+  } else {
     if (submission.status === 'approved') {
-      statusBadge.textContent = 'Solved';
+      statusBadge.dataset.status = 'solved';
+      if (challenge.type === 'photo') {
+        statusBadge.textContent = 'Approved (Solved)';
+      } else {
+        statusBadge.textContent = 'Solved';
+      }
     } else if (submission.status === 'pending') {
-      statusBadge.textContent = 'Pending';
-    } else {
-      statusBadge.textContent = 'Rejected';
+      statusBadge.dataset.status = 'pending';
+      statusBadge.textContent = 'Under Review';
+    } else if (submission.status === 'rejected') {
+      if (challenge.type === 'photo') {
+        statusBadge.dataset.status = 'rejected';
+        statusBadge.textContent = 'Rejected (Unsolved)';
+      } else {
+        statusBadge.dataset.status = 'unsolved';
+        statusBadge.textContent = 'Unsolved';
+      }
     }
-
-    meta.appendChild(statusBadge);
   }
+
+  meta.appendChild(statusBadge);
 
   body.appendChild(meta);
   card.appendChild(body);
@@ -477,7 +505,7 @@ function renderChallengeDetail(challenge: Challenge): void {
     activeChallengeStatus = existingSub?.status ?? undefined;
 
     const renderedEl = renderer(challenge, existingSub, (value: string) => {
-      if (challenge.type === 'input') {
+      if (challenge.type === 'answer') {
         const isCorrect = challenge.answer
           ? value.trim().toLowerCase() === challenge.answer.toLowerCase()
           : false;

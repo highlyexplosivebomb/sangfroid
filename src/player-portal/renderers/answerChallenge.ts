@@ -4,7 +4,7 @@ import { shakeElement } from '../../shared/dom';
 
 const COOLDOWN_MS = 60000;
 
-export function renderInputChallenge(
+export function renderAnswerChallenge(
   challenge: Challenge,
   existingSubmission: Submission | undefined,
   onSubmit: SubmitCallback,

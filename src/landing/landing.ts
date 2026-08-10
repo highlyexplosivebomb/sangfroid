@@ -56,8 +56,12 @@ async function transitionToSuccess(
 function handleSubmissionError(
   form: HTMLFormElement,
   overlay: HTMLElement,
-  submitBtn: HTMLButtonElement | null
+  submitBtn: HTMLButtonElement | null,
+  error?: unknown
 ): void {
+  if (error instanceof Error) {
+    alert(error.message);
+  }
   shakeElement(form.querySelector<HTMLInputElement>('.signup-stage:not([hidden]) input'));
   if (submitBtn) {
     submitBtn.disabled = false;
@@ -241,7 +245,12 @@ signupForm.addEventListener('submit', async (event) => {
   if (currentStage === 3) {
     const invalidInputs = getActiveInvalidInputs(signupForm);
     if (invalidInputs.length > 0) {
-      invalidInputs.forEach((input) => shakeElement(input));
+      invalidInputs.forEach((input) => {
+        shakeElement(input);
+        if (input.name === 'teamName' && input.validity.patternMismatch) {
+          alert('Only letters and spaces are allowed.');
+        }
+      });
       return;
     }
 
@@ -264,8 +273,8 @@ signupForm.addEventListener('submit', async (event) => {
         teamTagValue.classList.remove('hidden');
         teamTagHint.textContent = "This is your Team Tag. Share it with your teammates!";
         teamTagDisplay.classList.remove('hidden');
-      } catch {
-        handleSubmissionError(signupForm, submissionOverlay, submitBtn);
+      } catch (err: unknown) {
+        handleSubmissionError(signupForm, submissionOverlay, submitBtn, err);
       }
 
       return;
@@ -279,7 +288,12 @@ signupForm.addEventListener('submit', async (event) => {
     if (signUpType === SignupType.JoinTeam) {
       const invalidInputs = getActiveInvalidInputs(signupForm);
       if (invalidInputs.length > 0) {
-        invalidInputs.forEach((input) => shakeElement(input));
+        invalidInputs.forEach((input) => {
+          shakeElement(input);
+          if (input.name === 'teamName' && input.validity.patternMismatch) {
+            alert('Only letters and spaces are allowed.');
+          }
+        });
         return;
       }
 
@@ -297,8 +311,8 @@ signupForm.addEventListener('submit', async (event) => {
         teamTagValue.classList.add('hidden');
         teamTagHint.textContent = "You're in! You can close this page now.";
         teamTagDisplay.classList.remove('hidden');
-      } catch {
-        handleSubmissionError(signupForm, submissionOverlay, submitBtn);
+      } catch (err: unknown) {
+        handleSubmissionError(signupForm, submissionOverlay, submitBtn, err);
       }
 
       return;
