@@ -148,10 +148,6 @@ function renderYourTeam(container: HTMLElement): void {
   teamNameHeader.style.letterSpacing = '1px';
   teamContainer.appendChild(teamNameHeader);
 
-  const loadingText = document.createElement('div');
-  loadingText.textContent = 'Loading team members...';
-  teamContainer.appendChild(loadingText);
-
   container.appendChild(teamContainer);
 
   fetchTeamPlayers(session.id).then(players => {
@@ -218,7 +214,9 @@ function renderYourTeam(container: HTMLElement): void {
 
     teamContainer.appendChild(slotsContainer);
   }).catch(err => {
-    loadingText.textContent = 'Error loading team data.';
+    const loadingErrorText = document.createElement('div');
+    loadingErrorText.textContent = 'Error loading team data.';
+    teamContainer.appendChild(loadingErrorText);
     console.error(err);
   });
 }
