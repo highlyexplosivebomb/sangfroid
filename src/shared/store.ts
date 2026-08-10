@@ -84,13 +84,20 @@ let currentTeam: TeamSession | undefined;
 let isAdmin = false;
 let adminGameId: number | undefined;
 
+const storedTeam = localStorage.getItem('sangfroid_team');
+if (storedTeam) {
+  currentTeam = JSON.parse(storedTeam);
+}
+
 export function loginTeam(id: number, tag: string, name: string, gameId: number, timestamp: number): void {
   currentTeam = { id, tag, name, gameId, timestamp };
+  localStorage.setItem('sangfroid_team', JSON.stringify(currentTeam));
   startPolling();
 }
 
 export function logoutTeam(): void {
   currentTeam = undefined;
+  localStorage.removeItem('sangfroid_team');
   stopPolling();
 }
 
@@ -443,4 +450,8 @@ export function getLeaderboard(): { id: number; tag: string; name: string; point
 
 export function getTeamData(teamId: number) {
   return cachedTeams[teamId];
+}
+
+if (currentTeam) {
+  startPolling();
 }
