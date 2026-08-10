@@ -16,6 +16,12 @@
   --spacing-lg: 24px;
   --spacing-xl: 28px;
   --border-radius: 6px;
+  --btn-font-family: var(--font-family-accent);
+  --btn-font-size: 1.1rem;
+  --btn-font-weight: 600;
+  --btn-padding: 0.75rem 1.5rem;
+  --btn-border-radius: 8px;
+  --btn-letter-spacing: 0.5px;
   --transition-fast: 180ms ease;
   --transition-slow: 600ms ease;
 }
@@ -216,8 +222,9 @@ textarea {
   display: inline-grid;
   place-items: center;
   color: #ffffff;
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-family: var(--btn-font-family);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
   cursor: pointer;
   background: linear-gradient(135deg, #4b5563, #1f2937);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.2);
@@ -250,9 +257,4 @@ textarea {
 
 .mt-lg {
   margin-top: var(--spacing-lg);
-}
-
-.pin-value {
-  color: var(--color-danger);
-  margin-left: 8px;
 }

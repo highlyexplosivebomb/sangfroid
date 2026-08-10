@@ -20,48 +20,39 @@
   border-bottom: 2px solid #000;
 }
 
-.game-team-tag {
+.game-team-tag,
+.game-points,
+.game-time {
   font-family: var(--font-family-mono);
-  font-size: 0.9rem;
   font-weight: 700;
-  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   background: rgba(0, 0, 0, 0.4);
   border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
-  padding: 6px 12px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.game-team-tag {
+  font-size: 0.9rem;
+  color: #ffffff;
+  padding: 6px 12px;
+}
+
 .game-points {
-  font-family: var(--font-family-mono);
   font-size: 0.95rem;
-  font-weight: 700;
-  color: #22c55e;
-  background: rgba(0, 0, 0, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
+  color: #ffffff;
   padding: 6px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   white-space: nowrap;
 }
 
 .game-time {
   flex: 1;
-  font-family: var(--font-family-mono);
   font-size: 1.1rem;
-  font-weight: 700;
   color: var(--color-danger);
-  background: rgba(0, 0, 0, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
   padding: 6px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .game-tab-content {
@@ -296,8 +287,8 @@
 }
 
 .challenge-status-badge[data-status="unsolved"] {
-  background: rgba(156, 163, 175, 0.15);
-  color: #4b5563;
+  background: rgba(15, 61, 46, 0.08);
+  color: var(--color-primary);
 }
 
 .challenge-detail {
@@ -398,16 +389,16 @@
 }
 
 .challenge-submit-btn {
-  padding: 14px 20px;
+  padding: var(--btn-padding);
   border: 3px solid #1f2421;
-  border-radius: 10px;
+  border-radius: var(--btn-border-radius);
   background: linear-gradient(135deg, #1f2937, #111827);
   color: #ffffff;
-  font-family: var(--font-family-accent);
-  font-size: 1rem;
-  font-weight: 600;
+  font-family: var(--btn-font-family);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--btn-letter-spacing);
   cursor: pointer;
   transition: transform var(--transition-fast);
   white-space: nowrap;
@@ -596,13 +587,13 @@
   background: var(--color-primary);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 12px;
-  font-family: var(--font-family-accent);
-  font-size: 1rem;
-  font-weight: 700;
+  border-radius: var(--btn-border-radius);
+  padding: var(--btn-padding);
+  font-family: var(--btn-font-family);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--btn-letter-spacing);
   cursor: pointer;
   transition: opacity var(--transition-fast);
 }

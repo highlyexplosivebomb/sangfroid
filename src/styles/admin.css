@@ -65,14 +65,14 @@
 .admin-btn-secondary,
 .admin-btn-danger {
   flex: 1;
-  padding: 10px 14px;
+  padding: var(--btn-padding);
   border: 3px solid #1f2421;
-  border-radius: 8px;
-  font-family: var(--font-family-accent);
-  font-size: 0.95rem;
-  font-weight: 700;
+  border-radius: var(--btn-border-radius);
+  font-family: var(--btn-font-family);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--btn-letter-spacing);
   cursor: pointer;
   transition: transform var(--transition-fast), filter var(--transition-fast);
   color: #ffffff;
@@ -251,14 +251,6 @@
   flex-wrap: wrap;
 }
 
-.admin-empty {
-  text-align: center;
-  color: var(--color-text-muted);
-  padding: var(--spacing-xl);
-  font-family: var(--font-family-accent);
-  font-size: 0.95rem;
-  letter-spacing: 0.5px;
-}
 
 .admin-game-selector {
   gap: 8px;
@@ -273,19 +265,4 @@
 
 .admin-game-select option {
   color: #000;
-}
-
-.admin-logout-btn {
-  font-family: var(--font-family-mono);
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  padding: 6px 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }

@@ -23,19 +23,7 @@
   }
 }
 
-.definition-card {
-  background-color: #000000;
-  color: #ffffff;
-  padding: var(--spacing-lg);
-  border-radius: 12px;
-  font-family: "Georgia", "Times New Roman", serif;
-  text-align: center;
-  font-size: 1.05rem;
-  line-height: 1.5;
-  width: 100%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  pointer-events: none;
-}
+
 
 .watch-body {
   width: 100%;
@@ -79,16 +67,16 @@
 
 .landing-action-btn {
   flex: 1;
-  padding: 14px 24px;
+  padding: var(--btn-padding);
   border: 3px solid #1f2421;
-  border-radius: 10px;
+  border-radius: var(--btn-border-radius);
   background: linear-gradient(135deg, #dc2626, #991b1b);
   color: #ffffff;
-  font-family: var(--font-family-accent);
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-family: var(--btn-font-family);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: var(--btn-letter-spacing);
   cursor: pointer;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
