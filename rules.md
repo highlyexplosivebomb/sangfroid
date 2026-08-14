@@ -21,7 +21,7 @@ Challenges are revealed. Use this time to discuss a strategy or troubleshoot tec
 #### 2. Game
 00:05:00 - 02:05:00
 
-Challenges are opened for submission. Unique challenges will appear periodically, so pay attention to pop-ups!
+Challenges are opened for submission. The game may be paused at anytime if there are technical difficulties.
 
 #### 3. Finale
 02:05:00 - 02:30:00
