@@ -1,9 +1,9 @@
 import {
   getAdminGameId,
-  getGameState,
   setAdminGameId,
 } from '../shared/store';
 import { createSvgIcon } from '../shared/svg';
+import { startClock } from '../shared/clock';
 import { renderSubmissions } from './submissions';
 import { renderControls } from './controls';
 import { renderMoreTab } from './more';
@@ -19,6 +19,7 @@ let container: HTMLElement | null = null;
 let statusDisplay: HTMLElement | null = null;
 let activeTab: AdminTab = AdminTab.Controls;
 let refreshInterval: number | undefined;
+let stopClock: (() => void) | undefined;
 let availableGames: number[] = [];
 
 export async function mountAdmin(host: HTMLElement): Promise<void> {
@@ -38,6 +39,7 @@ export async function mountAdmin(host: HTMLElement): Promise<void> {
 
   renderShell();
   updateContent();
+  
   refreshInterval = setInterval(() => {
     if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
       updateContent();
@@ -49,6 +51,10 @@ export function unmountAdmin(): void {
   if (refreshInterval) {
     clearInterval(refreshInterval);
     refreshInterval = undefined;
+  }
+  if (stopClock) {
+    stopClock();
+    stopClock = undefined;
   }
   if (container) {
     container.innerHTML = '';
@@ -146,22 +152,20 @@ function updateContent(): void {
   }
   panel.innerHTML = '';
 
+  if (stopClock) {
+    stopClock();
+    stopClock = undefined;
+  }
+
+  if (getAdminGameId() && statusDisplay) {
+    stopClock = startClock(statusDisplay, true, () => !!getAdminGameId());
+  }
+
   if (activeTab === AdminTab.Submissions) {
     renderSubmissions(panel, updateContent);
   } else if (activeTab === AdminTab.Controls) {
     renderControls(panel, updateContent);
   } else if (activeTab === AdminTab.More) {
     renderMoreTab(panel);
-  }
-
-  if (statusDisplay) {
-    const gameId = getAdminGameId();
-    if (gameId) {
-      const state = getGameState();
-      const statusColor = state.status === 'running' ? 'var(--color-success)' : 'var(--color-danger)';
-      statusDisplay.innerHTML = `<span style="font-weight: 800; color: ${statusColor}">${state.status.toUpperCase()}</span>`;
-    } else {
-      statusDisplay.innerHTML = '';
-    }
   }
 }

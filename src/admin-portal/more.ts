@@ -2,13 +2,13 @@ import { getAdminGameId, getLeaderboard, logoutAdmin } from '../shared/store';
 import { navigateTo, SangfroidView } from '../shared/router';
 import { createSvgIcon } from '../shared/svg';
 
-let activeRender: (container: HTMLElement) => void = renderMenu;
+let currentView: (container: HTMLElement) => void = renderMenu;
 
 export function renderMoreTab(container: HTMLElement | null): void {
   if (!container) {
     return;
   }
-  activeRender(container);
+  currentView(container);
 }
 
 function renderMenu(container: HTMLElement): void {
@@ -41,8 +41,8 @@ function renderMenu(container: HTMLElement): void {
     'Leaderboard',
     '<path d="M18 20V10M12 20V4M6 20v-4"/>',
     () => {
-      activeRender = renderLeaderboard;
-      activeRender(container);
+      currentView = renderLeaderboard;
+      currentView(container);
     }
   );
 
@@ -83,8 +83,8 @@ function renderLeaderboard(container: HTMLElement): void {
     </svg>
   `;
   closeBtn.addEventListener('click', () => {
-    activeRender = renderMenu;
-    activeRender(container);
+    currentView = renderMenu;
+    currentView(container);
   });
   leaderboardContainer.appendChild(closeBtn);
 
@@ -101,8 +101,7 @@ function renderLeaderboard(container: HTMLElement): void {
   }
 
   const board = document.createElement('div');
-  board.className = 'leaderboard';
-  board.style.marginTop = '2rem';
+  board.className = 'leaderboard leaderboard-board';
 
   teams.forEach((team, index) => {
     const row = document.createElement('div');

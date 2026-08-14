@@ -266,3 +266,18 @@
 .admin-game-select option {
   color: #000;
 }
+
+.admin-config-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.game-time-bold {
+  font-weight: 800;
+}
+
+.leaderboard-board {
+  margin-top: 2rem;
+}

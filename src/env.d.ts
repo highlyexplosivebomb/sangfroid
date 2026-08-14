@@ -9,6 +9,7 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANNOUNCEMENT_TABLE?: string;
   readonly VITE_SUPABASE_SUBMISSION_TABLE?: string;
   readonly VITE_SUPABASE_CHALLENGE_TABLE?: string;
+  readonly VITE_SUPABASE_CHALLENGE_CHAT_TABLE?: string;
   readonly VITE_GAME_CODE_1?: string;
   readonly VITE_GAME_CODE_2?: string;
   readonly VITE_GAME_CODE_3?: string;

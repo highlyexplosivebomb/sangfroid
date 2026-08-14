@@ -1,6 +1,6 @@
 import type { Challenge, ChallengeType, Submission } from '../shared/store';
 
-export type SubmitCallback = (value: string) => void;
+export type SubmitCallback = (value: string, hostTeamId?: number) => void;
 export type ChallengeRenderer = (
   challenge: Challenge,
   existingSubmission: Submission | undefined,

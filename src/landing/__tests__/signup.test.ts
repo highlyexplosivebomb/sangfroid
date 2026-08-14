@@ -44,8 +44,12 @@ describe('generateTeamTag', () => {
 
   it('should fallback to double digit suffix if all single digits are taken', async () => {
     const isTagTaken = vi.fn().mockImplementation(async (tag) => {
-      if (tag === 'TBT') return true;
-      if (tag.startsWith('TB') && tag.length === 3 && !isNaN(Number(tag[2]))) return true;
+      if (tag === 'TBT') {
+        return true;
+      }
+      if (tag.startsWith('TB') && tag.length === 3 && !isNaN(Number(tag[2]))) {
+        return true;
+      }
       return false;
     });
     const tag = await generateTeamTag('The Bestest Team', isTagTaken);

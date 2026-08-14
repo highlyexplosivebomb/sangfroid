@@ -183,9 +183,6 @@ export function renderPhotoChallenge(
     zone.style.pointerEvents = 'none';
     zone.style.opacity = '0.6';
 
-    const originalText = btn.textContent;
-    btn.textContent = 'Uploading...';
-
     const publicUrl = await uploadPhoto(selectedBlob, session.tag);
 
     if (publicUrl) {
@@ -194,7 +191,6 @@ export function renderPhotoChallenge(
       btn.disabled = false;
       zone.style.pointerEvents = '';
       zone.style.opacity = '';
-      btn.textContent = originalText;
 
       feedbackSlot.innerHTML = '';
       feedbackSlot.appendChild(createFeedback('incorrect', 'Upload failed - try again'));

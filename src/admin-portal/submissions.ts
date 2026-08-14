@@ -5,6 +5,7 @@ import {
   setSubmissionStatus,
   SubmissionStatus,
   getAdminGameId,
+  getSubmissionForChallenge,
 } from '../shared/store';
 
 export function renderSubmissions(content: HTMLElement, updateContent: () => void): void {
@@ -37,12 +38,19 @@ export function renderSubmissions(content: HTMLElement, updateContent: () => voi
     info.className = 'review-card-info';
 
     const teamData = getTeamData(sub.teamId);
-    const teamName = teamData ? teamData.name : 'Unknown Team';
-    const teamTag = teamData ? teamData.tag : 'UNK';
+    let teamName = teamData ? teamData.name : 'Unknown Team';
+
+    if (sub.guestTeamIds.length > 0) {
+      const guestNames = sub.guestTeamIds.map(id => {
+        const team = getTeamData(id);
+        return team ? team.name : 'Unknown Team';
+      });
+      teamName += `, ${guestNames.join(', ')}`;
+    }
 
     const teamEl = document.createElement('div');
     teamEl.className = 'review-team-name';
-    teamEl.textContent = `${teamName} (${teamTag})`;
+    teamEl.textContent = `${teamName}`;
 
     const challengeEl = document.createElement('div');
     challengeEl.className = 'review-challenge-name';
@@ -67,22 +75,39 @@ export function renderSubmissions(content: HTMLElement, updateContent: () => voi
       card.appendChild(img);
     }
 
+    const guestSubIds: number[] = [];
+
+    if (sub.guestTeamIds.length > 0) {
+      for (const gid of sub.guestTeamIds) {
+        const guestSub = getSubmissionForChallenge(gid, challenge.id);
+        if (guestSub) {
+          guestSubIds.push(guestSub.id);
+        }
+      }
+    }
+
     const actions = document.createElement('div');
     actions.className = 'review-actions';
 
     const approveBtn = document.createElement('button');
-    approveBtn.className = 'review-approve-btn';
+    approveBtn.className = 'review-approve-btn accept-btn';
     approveBtn.textContent = 'Approve';
     approveBtn.addEventListener('click', () => {
       setSubmissionStatus(sub.id, SubmissionStatus.Approved);
+      for (const gid of guestSubIds) {
+        setSubmissionStatus(gid, SubmissionStatus.Approved);
+      }
       updateContent();
     });
 
     const rejectBtn = document.createElement('button');
-    rejectBtn.className = 'review-reject-btn';
+    rejectBtn.className = 'review-reject-btn reject-btn';
     rejectBtn.textContent = 'Reject';
     rejectBtn.addEventListener('click', () => {
       setSubmissionStatus(sub.id, SubmissionStatus.Rejected);
+      for (const gid of guestSubIds) {
+        setSubmissionStatus(gid, SubmissionStatus.Rejected);
+      }
       updateContent();
     });
 

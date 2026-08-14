@@ -5,19 +5,25 @@ import {
   getSubmissionForChallenge,
   getGameState,
   getAnnouncements,
-  dismissAnnouncement,
   addSubmission,
+  updateSubmissionData,
   dataVersion,
   SubmissionStatus,
+  getCurrentPhase,
+  GamePhase,
   GameStatus,
   type Challenge,
+  getMatchmakingRequests,
+  isMatchmakingDeclined,
+  hasDismissedAnnouncement,
+  getUnreadChatMessagesCount,
 } from '../shared/store';
 import { getRenderer } from './challenges';
-import { renderMoreTab } from './more';
+import { renderMoreTab, renderMessages } from './more';
 import { navigateTo, SangfroidView } from '../shared/router';
 import { initGameMap, destroyGameMap } from './map';
 import { createSvgIcon } from '../shared/svg';
-import { formatTime } from '../shared/format';
+import { startClock } from '../shared/clock';
 
 export const GameTab = {
   Map: 'map',
@@ -51,11 +57,11 @@ let tabButtons: Record<GameTab, HTMLElement | null> = { map: null, challenges: n
 let pointsDisplay: HTMLElement | null = null;
 let timeDisplay: HTMLElement | null = null;
 
-let clockInterval: number | undefined;
-let dismissedAnnouncements: Set<number> = new Set();
+let gameLoopInterval: number | undefined;
+let stopClock: (() => void) | undefined;
 let lastDataVersion = -1;
 let activeChallengeId: number | undefined;
-let activeChallengeStatus: string | undefined;
+let activeChallengeData: string | undefined;
 
 let currentSortMode: SortMode = SortMode.TitleAsc;
 let currentTypeFilter: TypeFilter = TypeFilter.All;
@@ -77,9 +83,13 @@ export function unmountGame(): void {
   pointsDisplay = null;
   timeDisplay = null;
 
-  if (clockInterval) {
-    clearInterval(clockInterval);
-    clockInterval = undefined;
+  if (gameLoopInterval) {
+    clearInterval(gameLoopInterval);
+    gameLoopInterval = undefined;
+  }
+  if (stopClock) {
+    stopClock();
+    stopClock = undefined;
   }
 }
 
@@ -118,11 +128,23 @@ function renderShell(): void {
   header.appendChild(timeDisplay);
   shell.appendChild(header);
 
-  clockInterval = setInterval(() => {
-    updateClock(session.gameId);
-    pollAnnouncements(session.gameId);
+  const tabContent = document.createElement('div');
+  tabContent.className = 'game-tab-content';
 
-    if (activeTab === GameTab.Challenges && dataVersion !== lastDataVersion) {
+  let lastPhase = getCurrentPhase();
+
+  if (timeDisplay) {
+    stopClock = startClock(timeDisplay, false);
+  }
+
+  gameLoopInterval = setInterval(() => {
+    pollMessagesBanner(tabContent, session.id);
+
+    const currentPhase = getCurrentPhase();
+    const phaseChanged = currentPhase !== lastPhase;
+    lastPhase = currentPhase;
+
+    if (activeTab === GameTab.Challenges && (dataVersion !== lastDataVersion || phaseChanged)) {
       lastDataVersion = dataVersion;
       refreshPointsDisplay();
 
@@ -130,8 +152,12 @@ function renderShell(): void {
         renderChallengeList();
       } else if (activeChallengeId !== undefined) {
         const currentSub = getSubmissionForChallenge(session.id, activeChallengeId);
-        const currentStatus = currentSub?.status ?? null;
-        if (currentStatus !== activeChallengeStatus) {
+        let hostSub;
+        if (currentSub?.status === 'matchmaking_accepted' && currentSub.hostTeamId) {
+          hostSub = getSubmissionForChallenge(currentSub.hostTeamId, activeChallengeId);
+        }
+        const currentData = JSON.stringify({ existingSub: currentSub, hostSub });
+        if (currentData !== activeChallengeData) {
           const chall = getChallenges().find(c => c.id === activeChallengeId);
           if (chall) {
             renderChallengeDetail(chall);
@@ -140,11 +166,7 @@ function renderShell(): void {
       }
     }
   }, 1000);
-  updateClock(session.gameId);
-  pollAnnouncements(session.gameId);
-
-  const tabContent = document.createElement('div');
-  tabContent.className = 'game-tab-content';
+  pollMessagesBanner(tabContent, session.id);
 
   panels.map = document.createElement('div');
   panels.map.className = 'game-tab-panel';
@@ -217,6 +239,11 @@ function switchTab(tab: GameTab): void {
   if (tab === GameTab.More) {
     renderMoreTab(panels.more);
   }
+
+  const banner = document.getElementById('messagesBanner');
+  if (banner) {
+    banner.style.display = (tab === GameTab.More) ? 'none' : 'block';
+  }
 }
 
 function renderMapTab(): void {
@@ -287,11 +314,25 @@ function sortChallenges(challenges: Challenge[], teamId: number): Challenge[] {
 
 function renderChallengeList(): void {
   activeChallengeId = undefined;
-  activeChallengeStatus = undefined;
+  activeChallengeData = undefined;
   if (!panels.challenges) {
     return;
   }
   panels.challenges.innerHTML = '';
+
+  const currentPhase = getCurrentPhase();
+  if (currentPhase === GamePhase.Stopped) {
+    panels.challenges.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <h3>Game Not Started</h3>
+        <p>Challenges are locked.</p>
+      </div>
+    `;
+    return;
+  }
 
   const session = getTeamSession();
   if (!session) {
@@ -331,12 +372,21 @@ function renderChallengeList(): void {
 
   filterRow.appendChild(typeSelect);
   filterRow.appendChild(sortSelect);
-  panels.challenges.appendChild(filterRow);
+
+  if (currentPhase !== GamePhase.Final) {
+    panels.challenges.appendChild(filterRow);
+  }
 
   const list = document.createElement('div');
   list.className = 'challenge-list';
 
   let challenges = [...getChallenges()];
+
+  if (currentPhase === GamePhase.Final) {
+    challenges = challenges.filter(c => c.type === 'final');
+  } else {
+    challenges = challenges.filter(c => c.type !== 'final');
+  }
 
   if (currentTypeFilter !== TypeFilter.All) {
     challenges = challenges.filter(c => c.type === currentTypeFilter);
@@ -356,6 +406,11 @@ function buildChallengeCard(challenge: Challenge, teamId: number): HTMLElement {
 
   const card = document.createElement('div');
   card.className = 'challenge-card';
+
+  const currentPhase = getCurrentPhase();
+  if (currentPhase === GamePhase.Stopped || currentPhase === GamePhase.Pregame || currentPhase === GamePhase.Ended || getGameState()?.status === GameStatus.Paused) {
+    card.classList.add('read-only');
+  }
 
   if (submission?.status === SubmissionStatus.Approved) {
     card.classList.add('solved');
@@ -388,8 +443,9 @@ function buildChallengeCard(challenge: Challenge, teamId: number): HTMLElement {
 
   const typeBadge = document.createElement('span');
   typeBadge.className = 'challenge-type-badge';
-  typeBadge.dataset.type = challenge.type;
-  typeBadge.textContent = challenge.type;
+  const displayType = challenge.type.startsWith('unique') ? 'unique' : challenge.type;
+  typeBadge.dataset.type = displayType;
+  typeBadge.textContent = displayType;
 
   meta.appendChild(pointsBadge);
   meta.appendChild(typeBadge);
@@ -397,13 +453,13 @@ function buildChallengeCard(challenge: Challenge, teamId: number): HTMLElement {
   const statusBadge = document.createElement('span');
   statusBadge.className = 'challenge-status-badge';
 
-  if (!submission) {
+  if (!submission || submission.status === 'matchmaking_request' || submission.status === 'matchmaking_accepted' || submission.status === 'pending_choice') {
     statusBadge.dataset.status = 'unsolved';
     statusBadge.textContent = 'Unsolved';
   } else {
     if (submission.status === 'approved') {
       statusBadge.dataset.status = 'solved';
-      if (challenge.type === 'photo') {
+      if (challenge.type === 'photo' || challenge.type.startsWith('unique')) {
         statusBadge.textContent = 'Approved (Solved)';
       } else {
         statusBadge.textContent = 'Solved';
@@ -412,7 +468,7 @@ function buildChallengeCard(challenge: Challenge, teamId: number): HTMLElement {
       statusBadge.dataset.status = 'pending';
       statusBadge.textContent = 'Under Review';
     } else if (submission.status === 'rejected') {
-      if (challenge.type === 'photo') {
+      if (challenge.type === 'photo' || challenge.type.startsWith('unique')) {
         statusBadge.dataset.status = 'rejected';
         statusBadge.textContent = 'Rejected (Unsolved)';
       } else {
@@ -427,12 +483,9 @@ function buildChallengeCard(challenge: Challenge, teamId: number): HTMLElement {
   body.appendChild(meta);
   card.appendChild(body);
 
-  const isLocked = submission?.status === 'approved' || submission?.status === 'pending';
-  if (!isLocked) {
-    card.addEventListener('click', () => {
-      renderChallengeDetail(challenge);
-    });
-  }
+  card.addEventListener('click', () => {
+    renderChallengeDetail(challenge);
+  });
 
   return card;
 }
@@ -485,8 +538,9 @@ function renderChallengeDetail(challenge: Challenge): void {
 
   const typeBadge = document.createElement('span');
   typeBadge.className = 'challenge-type-badge';
-  typeBadge.dataset.type = challenge.type;
-  typeBadge.textContent = challenge.type;
+  const displayType = challenge.type.startsWith('unique') ? 'unique' : challenge.type;
+  typeBadge.dataset.type = displayType;
+  typeBadge.textContent = displayType;
   metaRow.appendChild(typeBadge);
 
   infoContainer.appendChild(metaRow);
@@ -502,23 +556,48 @@ function renderChallengeDetail(challenge: Challenge): void {
   const renderer = getRenderer(challenge.type);
   if (renderer) {
     const existingSub = getSubmissionForChallenge(session.id, challenge.id);
-    activeChallengeStatus = existingSub?.status ?? undefined;
 
-    const renderedEl = renderer(challenge, existingSub, (value: string) => {
+    let hostSub;
+    if (existingSub?.status === 'matchmaking_accepted' && existingSub.hostTeamId) {
+      hostSub = getSubmissionForChallenge(existingSub.hostTeamId, challenge.id);
+    }
+    activeChallengeData = JSON.stringify({ existingSub, hostSub });
+
+    const renderedEl = renderer(challenge, existingSub, (value: string, hostTeamId?: number) => {
+      const handleSubmission = (status: SubmissionStatus) => {
+        if (existingSub) {
+          updateSubmissionData(existingSub.id, value, status);
+        } else {
+          addSubmission(challenge.id, session.id, value, status, hostTeamId);
+        }
+      };
+
       if (challenge.type === 'answer') {
         const isCorrect = challenge.answer
           ? value.trim().toLowerCase() === challenge.answer.toLowerCase()
           : false;
-        addSubmission(challenge.id, session.id, value, isCorrect ? 'approved' : 'rejected');
+        handleSubmission(isCorrect ? SubmissionStatus.Approved : SubmissionStatus.Rejected);
         if (isCorrect) {
           refreshPointsDisplay();
         }
       } else if (challenge.type === 'photo') {
-        addSubmission(challenge.id, session.id, value, 'pending');
+        handleSubmission(SubmissionStatus.Pending);
+      } else {
+        handleSubmission(SubmissionStatus.Pending);
       }
     });
 
     detail.appendChild(renderedEl);
+
+    const currentPhase = getCurrentPhase();
+    if (currentPhase === GamePhase.Stopped || currentPhase === GamePhase.Pregame || currentPhase === GamePhase.Ended || getGameState()?.status === GameStatus.Paused) {
+      const inputs = renderedEl.querySelectorAll('input, button, textarea');
+      inputs.forEach(el => {
+        (el as HTMLInputElement | HTMLButtonElement | HTMLTextAreaElement).disabled = true;
+      });
+      const zones = renderedEl.querySelectorAll<HTMLElement>('.photo-upload-zone');
+      zones.forEach(el => el.classList.add('disabled-zone'));
+    }
   }
 
   panels.challenges.appendChild(detail);
@@ -531,63 +610,126 @@ function refreshPointsDisplay(): void {
   }
 }
 
-function updateClock(_gameId: number): void {
-  if (!timeDisplay) {
-    return;
-  }
-  const state = getGameState();
 
-  if (state.status === GameStatus.Stopped) {
-    timeDisplay.textContent = 'STOPPED';
-    return;
-  }
+function pollMessagesBanner(container: HTMLElement, currentTeamId: number): void {
+  const currentPhase = getCurrentPhase();
 
-  let remaining = state.timeRemainingSeconds;
-
-  if (state.status === GameStatus.Running) {
-    const elapsed = Math.floor((Date.now() - state.lastTickTimestamp) / 1000);
-    remaining = Math.max(0, remaining - elapsed);
-  }
-
-  timeDisplay.textContent = formatTime(remaining);
-}
-
-function pollAnnouncements(gameId: number): void {
-  const announcements = getAnnouncements();
-  for (const ann of announcements) {
-    if (!dismissedAnnouncements.has(ann.id)) {
-      showAnnouncement(gameId, ann);
-      break;
+  if (currentPhase === GamePhase.Pregame || getGameState()?.status === GameStatus.Paused) {
+    delete container.dataset.messageCount;
+    const existing = document.getElementById('messagesBanner');
+    if (existing && !existing.classList.contains('pregame-banner')) {
+      existing.remove();
     }
-  }
-}
 
-function showAnnouncement(_gameId: number, ann: { id: number, message: string }): void {
-  if (document.getElementById(`ann-${ann.id}`)) {
+    const bannerText = currentPhase === GamePhase.Pregame
+      ? 'PRE-GAME: Challenges are read-only.'
+      : 'PAUSED: Challenges are read-only. Check messages for updates.';
+
+    const currentBanner = document.getElementById('messagesBanner');
+    if (!currentBanner) {
+      const bannerHtml = `
+        <div id="messagesBanner" class="pregame-banner" style="display: ${activeTab === GameTab.More ? 'none' : 'block'};">
+          <div class="pregame-banner-text">
+            ${bannerText}
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforebegin', bannerHtml);
+    } else {
+      const textEl = currentBanner.querySelector('.pregame-banner-text');
+      if (textEl && textEl.textContent !== bannerText) {
+        textEl.textContent = bannerText;
+      }
+    }
     return;
   }
 
-  const overlay = document.createElement('div');
-  overlay.className = 'announcement-overlay';
-  overlay.id = `ann-${ann.id}`;
-
-  const popup = document.createElement('div');
-  popup.className = 'announcement-popup';
-
-  const msg = document.createElement('p');
-  msg.textContent = ann.message;
-
-  const dismissBtn = document.createElement('button');
-  dismissBtn.className = 'announcement-dismiss-btn';
-  dismissBtn.textContent = 'Dismiss';
-  dismissBtn.addEventListener('click', () => {
-    dismissedAnnouncements.add(ann.id);
-    dismissAnnouncement(ann.id);
-    overlay.remove();
+  const requests = getMatchmakingRequests();
+  const otherTeamRequests = requests.filter(r => {
+    if (r.teamId === currentTeamId) {
+      return false;
+    }
+    if (isMatchmakingDeclined(r.id)) {
+      return false;
+    }
+    if (r.status !== 'matchmaking_request') {
+      return false;
+    }
+    const existingSub = getSubmissionForChallenge(currentTeamId, r.challengeId);
+    if (existingSub) {
+      return false;
+    }
+    return true;
   });
 
-  popup.appendChild(msg);
-  popup.appendChild(dismissBtn);
-  overlay.appendChild(popup);
-  document.body.appendChild(overlay);
+  const announcements = getAnnouncements();
+  const unreadAnnouncements = announcements.filter(a => !hasDismissedAnnouncement(a.id));
+
+  const unreadChatsCount = getUnreadChatMessagesCount();
+
+  const totalMessages = otherTeamRequests.length + unreadAnnouncements.length + unreadChatsCount;
+
+  if (totalMessages === 0) {
+    const existing = document.getElementById('messagesBanner');
+    if (existing) {
+      existing.remove();
+    }
+    delete container.dataset.messageCount;
+
+    const subBtnText = document.querySelector('#moreTabMessagesBtn .more-menu-text');
+    if (subBtnText) {
+      subBtnText.textContent = 'Messages';
+    }
+    return;
+  }
+
+  const subBtnText = document.querySelector('#moreTabMessagesBtn .more-menu-text');
+  if (subBtnText) {
+    subBtnText.textContent = `Messages (${totalMessages})`;
+  }
+
+  if (container.dataset.messageCount === String(totalMessages)) {
+    return; // Already showing this count
+  }
+
+  const existing = document.getElementById('messagesBanner');
+  if (existing) {
+    existing.remove();
+  }
+
+  container.dataset.messageCount = String(totalMessages);
+
+  let detailsHtml = '';
+  if (unreadAnnouncements.length > 0) {
+    detailsHtml += `<div>- ${unreadAnnouncements.length}x admin message${unreadAnnouncements.length > 1 ? 's' : ''}</div>`;
+  }
+  if (otherTeamRequests.length > 0) {
+    detailsHtml += `<div>- ${otherTeamRequests.length}x matchmaking request${otherTeamRequests.length > 1 ? 's' : ''}</div>`;
+  }
+  if (unreadChatsCount > 0) {
+    detailsHtml += `<div>- ${unreadChatsCount}x new chat message${unreadChatsCount > 1 ? 's' : ''}</div>`;
+  }
+
+  const bannerHtml = `
+    <div id="messagesBanner" class="matchmaking-banner messages-banner" style="display: ${activeTab === GameTab.More ? 'none' : 'block'};">
+      <div id="messagesBannerText" class="matchmaking-banner-text messages-banner-text">
+        You have ${totalMessages} new message${totalMessages > 1 ? 's' : ''}:
+        <div class="messages-banner-details">
+          ${detailsHtml}
+        </div>
+      </div>
+    </div>
+  `;
+  container.insertAdjacentHTML('beforebegin', bannerHtml);
+
+  const banner = document.getElementById('messagesBanner');
+  if (banner) {
+    banner.addEventListener('click', () => {
+      switchTab(GameTab.More);
+      const morePanel = panels.more;
+      if (morePanel) {
+        renderMessages(morePanel);
+      }
+    });
+  }
 }

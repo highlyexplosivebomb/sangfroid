@@ -23,14 +23,43 @@ export function renderControls(content: HTMLElement, updateContent: () => void):
   const actions = document.createElement('div');
   actions.className = 'admin-control-actions';
 
+  const configGroup = document.createElement('div');
+
+  const skipPregameLabel = document.createElement('label');
+  const skipPregameCheck = document.createElement('input');
+  skipPregameCheck.type = 'checkbox';
+  skipPregameCheck.checked = state.skipPregame;
+  skipPregameCheck.addEventListener('change', () => {
+    state.skipPregame = skipPregameCheck.checked;
+    saveGameState(gameId, state);
+  });
+  skipPregameLabel.appendChild(skipPregameCheck);
+  skipPregameLabel.appendChild(document.createTextNode(' Skip Pre-Game'));
+  configGroup.appendChild(skipPregameLabel);
+
+  const skipFinalLabel = document.createElement('label');
+  const skipFinalCheck = document.createElement('input');
+  skipFinalCheck.type = 'checkbox';
+  skipFinalCheck.checked = state.skipFinalChallenge;
+  skipFinalCheck.addEventListener('change', () => {
+    state.skipFinalChallenge = skipFinalCheck.checked;
+    saveGameState(gameId, state);
+  });
+  skipFinalLabel.appendChild(skipFinalCheck);
+  skipFinalLabel.appendChild(document.createTextNode(' Skip Final Challenge'));
+  configGroup.appendChild(skipFinalLabel);
+
   const startBtn = document.createElement('button');
   startBtn.textContent = state.status === 'paused' ? 'Resume' : 'Start';
   startBtn.className = 'admin-btn-primary';
   startBtn.addEventListener('click', () => {
-    const gameDuration = 120;
+    const gameDuration = 120 * 60;
+    const pregameDuration = state.skipPregame ? 0 : 5 * 60;
+    const totalDuration = gameDuration + pregameDuration;
+
     if (state.status === GameStatus.Stopped) {
-      state.duration = gameDuration * 60;
-      state.timeRemainingSeconds = gameDuration * 60;
+      state.duration = totalDuration;
+      state.timeRemainingSeconds = totalDuration;
     }
     state.status = GameStatus.Running;
     state.lastTickTimestamp = Date.now();
@@ -71,6 +100,7 @@ export function renderControls(content: HTMLElement, updateContent: () => void):
   actions.appendChild(startBtn);
   actions.appendChild(pauseBtn);
   actions.appendChild(stopBtn);
+  statusGroup.appendChild(configGroup);
   statusGroup.appendChild(actions);
 
   wrapper.appendChild(statusGroup);

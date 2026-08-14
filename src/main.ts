@@ -8,7 +8,8 @@ import { registerView, navigateTo, getViewFromPath, SangfroidView } from './shar
 import { registerRenderer } from './player-portal/challenges';
 import { renderAnswerChallenge } from './player-portal/renderers/answerChallenge';
 import { renderPhotoChallenge } from './player-portal/renderers/photoChallenge';
-import { renderUniqueChallenge } from './player-portal/renderers/uniqueChallenge';
+import { renderUniqueChallenge1 } from './player-portal/renderers/uniqueChallenge1';
+import { renderUniqueChallenge3 } from './player-portal/renderers/uniqueChallenge3';
 import { mountGame, unmountGame } from './player-portal/game';
 import { mountAdmin, unmountAdmin } from './admin-portal/admin';
 import { initMap, mountLanding, unmountLanding } from './landing/landing';
@@ -18,7 +19,9 @@ import { ChallengeType } from './shared/store';
 
 registerRenderer(ChallengeType.Answer, renderAnswerChallenge);
 registerRenderer(ChallengeType.Photo, renderPhotoChallenge);
-registerRenderer(ChallengeType.Unique, renderUniqueChallenge);
+registerRenderer(ChallengeType.Unique1, renderUniqueChallenge1);
+registerRenderer(ChallengeType.Unique3, renderUniqueChallenge3);
+registerRenderer(ChallengeType.Final, renderUniqueChallenge3);
 
 const gameHost = getRequiredElement<HTMLElement>('#gameView');
 const adminHost = getRequiredElement<HTMLElement>('#adminView');
