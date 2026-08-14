@@ -17,6 +17,7 @@ import {
   isMatchmakingDeclined,
   hasDismissedAnnouncement,
   getUnreadChatMessagesCount,
+  type Submission,
 } from '../shared/store';
 import { getRenderer } from './challenges';
 import { renderMoreTab, renderMessages } from './more';
@@ -152,11 +153,13 @@ function renderShell(): void {
         renderChallengeList();
       } else if (activeChallengeId !== undefined) {
         const currentSub = getSubmissionForChallenge(session.id, activeChallengeId);
-        let hostSub;
-        if (currentSub?.status === 'matchmaking_accepted' && currentSub.hostTeamId) {
-          hostSub = getSubmissionForChallenge(currentSub.hostTeamId, activeChallengeId);
+        let partnerSub: Submission;
+        if (currentSub?.hostTeamId) {
+          partnerSub = getSubmissionForChallenge(currentSub.hostTeamId, activeChallengeId);
+        } else if (currentSub?.guestTeamIds?.length) {
+          partnerSub = getSubmissionForChallenge(currentSub.guestTeamIds[0], activeChallengeId);
         }
-        const currentData = JSON.stringify({ existingSub: currentSub, hostSub });
+        const currentData = JSON.stringify({ existingSub: currentSub, partnerSub });
         if (currentData !== activeChallengeData) {
           const chall = getChallenges().find(c => c.id === activeChallengeId);
           if (chall) {
@@ -557,11 +560,13 @@ function renderChallengeDetail(challenge: Challenge): void {
   if (renderer) {
     const existingSub = getSubmissionForChallenge(session.id, challenge.id);
 
-    let hostSub;
-    if (existingSub?.status === 'matchmaking_accepted' && existingSub.hostTeamId) {
-      hostSub = getSubmissionForChallenge(existingSub.hostTeamId, challenge.id);
+    let partnerSub: Submission;
+    if (existingSub?.hostTeamId) {
+      partnerSub = getSubmissionForChallenge(existingSub.hostTeamId, challenge.id);
+    } else if (existingSub?.guestTeamIds?.length) {
+      partnerSub = getSubmissionForChallenge(existingSub.guestTeamIds[0], challenge.id);
     }
-    activeChallengeData = JSON.stringify({ existingSub, hostSub });
+    activeChallengeData = JSON.stringify({ existingSub, partnerSub });
 
     const renderedEl = renderer(challenge, existingSub, (value: string, hostTeamId?: number) => {
       const handleSubmission = (status: SubmissionStatus) => {

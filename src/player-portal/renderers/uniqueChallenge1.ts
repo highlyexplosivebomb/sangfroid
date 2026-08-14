@@ -2,7 +2,7 @@ import type { ChallengeRenderer } from '../challenges';
 import { SubmissionStatus, requestTeamUp, getTeamSession, getSubmissionForChallenge } from '../../shared/store';
 import { renderPhotoChallenge } from './photoChallenge';
 import { renderMatchmakingUI } from './challengeMatchmaking';
-import { injectChat } from './rendererUtils';
+import { injectChat, buildFeedback } from './rendererUtils';
 
 export const renderUniqueChallenge1: ChallengeRenderer = (challenge, existingSubmission, onSubmit) => {
   const container = document.createElement('div');
@@ -17,7 +17,7 @@ export const renderUniqueChallenge1: ChallengeRenderer = (challenge, existingSub
     const requestBtn = document.createElement('button');
     requestBtn.id = 'requestTeamUpBtn';
     requestBtn.className = 'challenge-submit-btn';
-    requestBtn.textContent = 'Request Team-Up';
+    requestBtn.textContent = 'Start Matchmaking';
     requestBtn.addEventListener('click', async () => {
       requestBtn.disabled = true;
       await requestTeamUp(challenge.id, session.id);
@@ -45,14 +45,32 @@ export const renderUniqueChallenge1: ChallengeRenderer = (challenge, existingSub
 
     if (hostTeamId) {
       const hostSub = getSubmissionForChallenge(hostTeamId, challenge.id);
-      if (hostSub && hostSub.status === SubmissionStatus.MatchmakingRequest) {
+      if (hostSub?.status === SubmissionStatus.MatchmakingRequest) {
         container.appendChild(renderMatchmakingUI(challenge, hostSub, true));
-      } else if (challenge.allowEveryoneToSubmit) {
-        const photoUI = renderPhotoChallenge(challenge, existingSubmission, (photoUrl) => {
-          onSubmit(photoUrl, hostTeamId);
-        });
-        photoUI.classList.remove('challenge-submit-section');
-        container.appendChild(photoUI);
+      } else if (!hostSub || hostSub.status === SubmissionStatus.MatchmakingAccepted) {
+        container.appendChild(buildFeedback('submitted', 'Waiting for the host to submit the photo'));
+      } else if (hostSub.status === SubmissionStatus.Pending) {
+        if (challenge.allowEveryoneToSubmit) {
+          const photoUI = renderPhotoChallenge(challenge, existingSubmission, (photoUrl) => {
+            onSubmit(photoUrl, hostTeamId);
+          });
+          photoUI.classList.remove('challenge-submit-section');
+          container.appendChild(photoUI);
+        } else {
+          container.appendChild(buildFeedback('submitted', 'Host submitted the photo'));
+        }
+      } else if (hostSub.status === SubmissionStatus.Rejected) {
+        container.appendChild(buildFeedback('incorrect', "Host's photo was rejected"));
+      } else if (hostSub.status === SubmissionStatus.Approved) {
+        if (challenge.allowEveryoneToSubmit) {
+          const photoUI = renderPhotoChallenge(challenge, existingSubmission, (photoUrl) => {
+            onSubmit(photoUrl, hostTeamId);
+          });
+          photoUI.classList.remove('challenge-submit-section');
+          container.appendChild(photoUI);
+        } else {
+          container.appendChild(buildFeedback('correct', `Submission approved - +${challenge.points} pts`));
+        }
       }
       injectChat(container, hostSub?.id, challenge, hostSub, true);
       return container;
@@ -64,7 +82,7 @@ export const renderUniqueChallenge1: ChallengeRenderer = (challenge, existingSub
   if (isGuest && !challenge.allowEveryoneToSubmit) {
     const feedbackSlot = document.createElement('div');
     feedbackSlot.className = 'photo-feedback-slot';
-    
+
     const text = document.createElement('div');
     if (existingSubmission.status === SubmissionStatus.Pending) {
       text.className = 'challenge-feedback submitted';

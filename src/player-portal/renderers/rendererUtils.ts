@@ -1,6 +1,16 @@
 import type { Challenge, Submission } from '../../shared/store';
 import { createTeamControls } from './challengeChat';
 
+export function buildFeedback(className: string, text: string): HTMLElement {
+  const slot = document.createElement('div');
+  slot.className = 'photo-feedback-slot';
+  const el = document.createElement('div');
+  el.className = `challenge-feedback ${className}`;
+  el.textContent = text;
+  slot.appendChild(el);
+  return slot;
+}
+
 export function injectChat(
   container: HTMLElement,
   submissionId: number | undefined,

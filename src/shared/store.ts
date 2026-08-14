@@ -13,6 +13,7 @@ export const ChallengeType = {
   Answer: 'answer',
   Photo: 'photo',
   Unique1: 'unique-1',
+  Unique2: 'unique-2',
   Unique3: 'unique-3',
   Final: 'final',
 } as const;
@@ -385,10 +386,8 @@ function handleRealtimeUpdate(type: 'submission' | 'announcement' | 'game' | 'ch
         cachedSubmissions[idx].status = normalizeStatus(newRow.status, 'pending') as SubmissionStatus;
         cachedSubmissions[idx].guestTeamIds = newRow.guest_team_ids || [];
         cachedSubmissions[idx].hostTeamId = newRow.host_team_id || undefined;
-        if (isAdmin || (currentTeam && newRow.team_id === currentTeam.id)) {
-          if ('value' in newRow) {
-            cachedSubmissions[idx].value = newRow.value;
-          }
+        if ('value' in newRow) {
+          cachedSubmissions[idx].value = newRow.value;
         }
         dataVersion++;
       }
@@ -688,6 +687,24 @@ function calculatePointsForSubmission(sub: Submission): number {
   }
   const challenge = getChallengeById(sub.challengeId);
   if (!challenge) {
+    return 0;
+  }
+
+  if (challenge.type === ChallengeType.Unique2) {
+    const partnerId = sub.hostTeamId || sub.guestTeamIds[0];
+    if (!partnerId) {
+      return 0;
+    }
+    const partnerSub = getSubmissionForChallenge(partnerId, challenge.id);
+    if (!partnerSub) {
+      return 0;
+    }
+    if (sub.value === 'split' && partnerSub.value === 'split') {
+      return Math.floor(challenge.points / 2);
+    }
+    if (sub.value === 'steal' && partnerSub.value === 'split') {
+      return challenge.points;
+    }
     return 0;
   }
 
