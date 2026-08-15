@@ -477,7 +477,11 @@ export function getUnlockedStoryMessages(): StoryMessage[] {
   if (state.status === GameStatus.Stopped) return [];
 
   const duration = state.duration || 7200;
-  const remaining = state.timeRemainingSeconds;
+  let remaining = state.timeRemainingSeconds;
+  if (state.status === GameStatus.Running) {
+    const elapsedTicks = Math.floor((Date.now() - state.lastTickTimestamp) / 1000);
+    remaining -= elapsedTicks;
+  }
 
   if (remaining > duration) {
     return [];
@@ -769,10 +773,29 @@ function calculatePointsForSubmission(sub: Submission): number {
   return challenge.points;
 }
 
+function applyFinalChallengePenalty(teamId: number, basePoints: number): number {
+  if (getCurrentPhase() !== GamePhase.Ended) {
+    return basePoints;
+  }
+  
+  const finalChallenge = cachedChallenges.find(c => c.type === 'final');
+  if (!finalChallenge) {
+    return basePoints;
+  }
+
+  const sub = cachedSubmissions.find(s => s.teamId === teamId && s.challengeId === finalChallenge.id);
+  if (!sub || sub.status !== 'approved') {
+    return Math.round(basePoints * 0.8);
+  }
+
+  return basePoints;
+}
+
 export function getTeamPoints(teamId: number): number {
-  return cachedSubmissions
+  const basePoints = cachedSubmissions
     .filter((s) => s.teamId === teamId && s.status === 'approved')
     .reduce((sum, s) => sum + calculatePointsForSubmission(s), 0);
+  return applyFinalChallengePenalty(teamId, basePoints);
 }
 
 export function getLeaderboard(): { id: number; tag: string; name: string; points: number }[] {
@@ -793,7 +816,7 @@ export function getLeaderboard(): { id: number; tag: string; name: string; point
   }
 
   return Array.from(teamMap.entries())
-    .map(([id, info]) => ({ id, ...info }))
+    .map(([id, info]) => ({ id, ...info, points: applyFinalChallengePenalty(id, info.points) }))
     .sort((a, b) => b.points - a.points);
 }
 
