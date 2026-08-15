@@ -355,8 +355,10 @@ function handleRealtimeUpdate(type: 'submission' | 'announcement' | 'game' | 'ch
   const { eventType, new: newRow, old: oldRow } = payload;
 
   if (type === 'game') {
-    if (eventType === 'UPDATE') {
-      if (newRow.id !== getActiveGameId()) return;
+    if (eventType === 'UPDATE' || eventType === 'INSERT') {
+      if (newRow.id !== getActiveGameId()) {
+        return;
+      }
       cachedGameState = {
         status: normalizeStatus(newRow.status, 'stopped') as GameStatus,
         duration: newRow.duration,
