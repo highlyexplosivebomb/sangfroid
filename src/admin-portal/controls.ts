@@ -69,6 +69,10 @@ export function renderControls(content: HTMLElement, updateContent: () => void):
   startBtn.textContent = state.status === 'paused' ? 'Resume' : 'Start';
   startBtn.className = 'admin-btn-primary';
   startBtn.addEventListener('click', () => {
+    state.skipPregame = skipPregameCheck.checked;
+    state.skipMainPhase = skipMainCheck.checked;
+    state.skipFinalChallenge = skipFinalCheck.checked;
+
     const gameDuration = state.skipMainPhase ? 0 : 120 * 60;
     const pregameDuration = state.skipPregame ? 0 : 5 * 60;
     const totalDuration = gameDuration + pregameDuration;
