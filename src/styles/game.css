@@ -1282,3 +1282,122 @@
   gap: 8px;
   align-items: stretch;
 }
+
+/* --- Story Logs CLI Styling --- */
+.story-logs-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #050505;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.story-logs-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: #fff;
+}
+
+.story-logs-area {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 20px;
+}
+
+.story-log-entry {
+  display: flex;
+  gap: 8px;
+  font-size: 1rem;
+  line-height: 1.4;
+  animation: typeIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.story-log-prompt {
+  font-weight: bold;
+}
+
+.story-logs-empty {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+@keyframes typeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Final Challenge CLI Styling --- */
+.final-challenge-cli {
+  background-color: #050505 !important;
+  color: #fff !important;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+.final-challenge-cli .challenge-detail-scroll-area {
+  background-color: transparent !important;
+}
+
+.final-challenge-cli .challenge-detail-info {
+  background-color: transparent !important;
+  color: #fff !important;
+}
+
+.final-challenge-cli .challenge-detail-title {
+  text-shadow: 0 0 5px #fff;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+.final-challenge-cli .challenge-detail-desc {
+  font-family: 'Courier New', Courier, monospace !important;
+  color: #fff !important;
+}
+
+.final-challenge-cli .challenge-detail-meta-row {
+  border-bottom-color: #fff !important;
+}
+
+.final-challenge-cli .challenge-points-badge,
+.final-challenge-cli .challenge-type-badge {
+  background-color: transparent !important;
+  border: 1px solid #fff;
+  color: #fff !important;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+.final-challenge-cli .challenge-submit-section {
+  background-color: transparent !important;
+}
+
+.final-challenge-cli .challenge-text-input {
+  background-color: #050505 !important;
+  color: #fff !important;
+  border: 1px solid #fff !important;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+.final-challenge-cli .challenge-submit-btn {
+  background-color: transparent !important;
+  color: #fff !important;
+  border: 1px solid #fff !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  transition: all 0.2s;
+}
+
+.final-challenge-cli .challenge-submit-btn:hover {
+  background-color: #fff !important;
+  color: #050505 !important;
+}
+

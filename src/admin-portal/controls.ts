@@ -29,6 +29,7 @@ export function renderControls(content: HTMLElement, updateContent: () => void):
   const skipPregameCheck = document.createElement('input');
   skipPregameCheck.type = 'checkbox';
   skipPregameCheck.checked = state.skipPregame;
+  skipPregameCheck.disabled = state.status !== GameStatus.Stopped;
   skipPregameCheck.addEventListener('change', () => {
     state.skipPregame = skipPregameCheck.checked;
     saveGameState(gameId, state);
@@ -37,10 +38,25 @@ export function renderControls(content: HTMLElement, updateContent: () => void):
   skipPregameLabel.appendChild(document.createTextNode(' Skip Pre-Game'));
   configGroup.appendChild(skipPregameLabel);
 
+  const skipMainLabel = document.createElement('label');
+  const skipMainCheck = document.createElement('input');
+  skipMainCheck.type = 'checkbox';
+  skipMainCheck.checked = state.skipMainPhase;
+  skipMainCheck.disabled = state.status !== GameStatus.Stopped;
+  skipMainCheck.addEventListener('change', () => {
+    state.skipMainPhase = skipMainCheck.checked;
+    saveGameState(gameId, state);
+    updateContent();
+  });
+  skipMainLabel.appendChild(skipMainCheck);
+  skipMainLabel.appendChild(document.createTextNode(' Skip Main Phase'));
+  configGroup.appendChild(skipMainLabel);
+
   const skipFinalLabel = document.createElement('label');
   const skipFinalCheck = document.createElement('input');
   skipFinalCheck.type = 'checkbox';
   skipFinalCheck.checked = state.skipFinalChallenge;
+  skipFinalCheck.disabled = state.status !== GameStatus.Stopped;
   skipFinalCheck.addEventListener('change', () => {
     state.skipFinalChallenge = skipFinalCheck.checked;
     saveGameState(gameId, state);
@@ -53,7 +69,7 @@ export function renderControls(content: HTMLElement, updateContent: () => void):
   startBtn.textContent = state.status === 'paused' ? 'Resume' : 'Start';
   startBtn.className = 'admin-btn-primary';
   startBtn.addEventListener('click', () => {
-    const gameDuration = 120 * 60;
+    const gameDuration = state.skipMainPhase ? 0 : 120 * 60;
     const pregameDuration = state.skipPregame ? 0 : 5 * 60;
     const totalDuration = gameDuration + pregameDuration;
 

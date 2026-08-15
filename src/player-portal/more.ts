@@ -1,4 +1,4 @@
-import { getTeamSession, logoutTeam, getLeaderboard, getAnnouncements, getMatchmakingRequests, hasDismissedAnnouncement, markAnnouncementDismissed, isMatchmakingDeclined, declineMatchmakingRequest, acceptTeamUp, getTeamData, getChallenges, getSubmissionForChallenge, SubmissionStatus, getActiveChatSubmissions, getUnreadCountForChat, markChatAsRead } from '../shared/store';
+import { getTeamSession, logoutTeam, getLeaderboard, getAnnouncements, getMatchmakingRequests, hasDismissedAnnouncement, markAnnouncementDismissed, isMatchmakingDeclined, declineMatchmakingRequest, acceptTeamUp, getTeamData, getChallenges, getSubmissionForChallenge, SubmissionStatus, getActiveChatSubmissions, getUnreadCountForChat, markChatAsRead, getUnlockedStoryMessages } from '../shared/store';
 import { navigateTo, SangfroidView } from '../shared/router';
 import { fetchTeamPlayers } from '../shared/supabase';
 import { createSvgIcon } from '../shared/svg';
@@ -40,6 +40,13 @@ export function renderMoreTab(container: HTMLElement | null): void {
     item.appendChild(text);
     return item;
   };
+
+  const storyLogsBtn = createMenuItem(
+    'Story Logs',
+    '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><line x1="8" y1="7" x2="16" y2="7"></line><line x1="8" y1="11" x2="16" y2="11"></line>',
+    () => renderStoryLogs(container)
+  );
+  storyLogsBtn.id = 'moreTabStoryLogsBtn';
 
   const messagesBtn = createMenuItem(
     'Messages',
@@ -113,6 +120,7 @@ export function renderMoreTab(container: HTMLElement | null): void {
   rankingSection.appendChild(rankSub);
 
   menuList.appendChild(rankingSection);
+  menuList.appendChild(storyLogsBtn);
   menuList.appendChild(messagesBtn);
   menuList.appendChild(rulesBtn);
   menuList.appendChild(yourTeamBtn);
@@ -425,3 +433,49 @@ export function renderMessages(container: HTMLElement): void {
     });
   });
 }
+
+function renderStoryLogs(container: HTMLElement): void {
+  container.innerHTML = '';
+
+  const session = getTeamSession();
+  if (!session) {
+    return;
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'story-logs-container';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'challenge-detail-close-btn story-logs-close-btn';
+  closeBtn.type = 'button';
+  closeBtn.innerHTML = `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  `;
+  closeBtn.addEventListener('click', () => renderMoreTab(container));
+  wrapper.appendChild(closeBtn);
+
+  const logsArea = document.createElement('div');
+  logsArea.className = 'story-logs-area';
+
+  const unlockedMessages = getUnlockedStoryMessages();
+  if (unlockedMessages.length === 0) {
+    const emptyEl = document.createElement('div');
+    emptyEl.className = 'story-logs-empty';
+    emptyEl.textContent = '> No logs recovered yet...';
+    logsArea.appendChild(emptyEl);
+  } else {
+    unlockedMessages.forEach((msg) => {
+      const entry = document.createElement('div');
+      entry.className = 'story-log-entry';
+      entry.innerHTML = `<span class="story-log-prompt">></span> <span class="story-log-text">${msg.message}</span>`;
+      logsArea.appendChild(entry);
+    });
+  }
+
+  wrapper.appendChild(logsArea);
+  container.appendChild(wrapper);
+}
+

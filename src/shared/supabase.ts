@@ -9,6 +9,7 @@ export const ANNOUNCEMENT_TABLE = import.meta.env.VITE_SUPABASE_ANNOUNCEMENT_TAB
 export const SUBMISSION_TABLE = import.meta.env.VITE_SUPABASE_SUBMISSION_TABLE ?? '';
 export const CHALLENGES_TABLE = import.meta.env.VITE_SUPABASE_CHALLENGE_TABLE ?? '';
 export const CHALLENGE_MESSAGES_TABLE = import.meta.env.VITE_SUPABASE_CHALLENGE_CHAT_TABLE ?? 'challenge_messages';
+export const STORY_TABLE = import.meta.env.VITE_SUPABASE_STORY_TABLE ?? 'story_message';
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL ?? '',
@@ -151,6 +152,7 @@ export async function updateGameState(gameId: number, state: GameState): Promise
       time_remaining: state.timeRemainingSeconds,
       last_tick_timestamp: state.lastTickTimestamp ? new Date(state.lastTickTimestamp).toISOString() : null,
       skip_pregame: state.skipPregame,
+      skip_main_phase: state.skipMainPhase,
       skip_final_challenge: state.skipFinalChallenge,
     });
   if (error) {
@@ -409,4 +411,17 @@ export async function uploadPhoto(file: Blob, teamTag: string): Promise<string |
     .getPublicUrl(fileName);
 
   return publicUrl;
+}
+
+export async function fetchStoryMessages(): Promise<{ id: number; message: string }[]> {
+  const { data, error } = await supabase
+    .from(STORY_TABLE)
+    .select('id, message')
+    .order('id', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching story messages:', error);
+    return [];
+  }
+  return data ?? [];
 }

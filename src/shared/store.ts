@@ -6,7 +6,8 @@ import {
   fetchChallenges, fetchTeams,
   supabase, deleteSubmission,
   GAME_TABLE, ANNOUNCEMENT_TABLE, SUBMISSION_TABLE, CHALLENGE_MESSAGES_TABLE,
-  fetchChallengeMessages, fetchMultipleChallengeMessages, insertChallengeMessage
+  fetchChallengeMessages, fetchMultipleChallengeMessages, insertChallengeMessage,
+  fetchStoryMessages
 } from './supabase';
 
 export const ChallengeType = {
@@ -67,6 +68,11 @@ export interface ChallengeMessage {
   timestamp: number;
 }
 
+export interface StoryMessage {
+  id: number;
+  message: string;
+}
+
 export interface Team {
   id: number;
   game_id: number;
@@ -97,6 +103,7 @@ export interface GameState {
   timeRemainingSeconds: number;
   lastTickTimestamp: number;
   skipPregame: boolean;
+  skipMainPhase: boolean;
   skipFinalChallenge: boolean;
 }
 
@@ -194,6 +201,7 @@ let cachedGameState: GameState = {
   timeRemainingSeconds: 0,
   lastTickTimestamp: 0,
   skipPregame: false,
+  skipMainPhase: false,
   skipFinalChallenge: false,
 };
 
@@ -220,9 +228,17 @@ export function getCurrentPhase(): GamePhase {
     }
   }
 
-  const gameDuration = 120 * 60;
+  const gameDuration = cachedGameState.skipMainPhase ? 0 : 120 * 60;
   if (!cachedGameState.skipPregame && remaining > gameDuration) {
     return GamePhase.Pregame;
+  }
+
+  if (cachedGameState.skipMainPhase) {
+    if (cachedGameState.skipFinalChallenge) {
+      return GamePhase.Ended;
+    } else {
+      return GamePhase.Final;
+    }
   }
 
   return GamePhase.Main;
@@ -231,6 +247,7 @@ let cachedAnnouncements: Announcement[] = [];
 let cachedSubmissions: Submission[] = [];
 export let cachedChallenges: Challenge[] = [];
 export let cachedChallengeMessages: ChallengeMessage[] = [];
+export let cachedStoryMessages: StoryMessage[] = [];
 export let dataVersion = 0;
 let cachedTeams: Record<number, { tag: string; name: string }> = {};
 
@@ -260,6 +277,7 @@ async function syncAllData(gameId: number) {
       timeRemainingSeconds: state.time_remaining,
       lastTickTimestamp: state.last_tick_timestamp ? new Date(state.last_tick_timestamp).getTime() : 0,
       skipPregame: state.skip_pregame ?? false,
+      skipMainPhase: state.skip_main_phase ?? false,
       skipFinalChallenge: state.skip_final_challenge ?? false,
     };
   }
@@ -309,6 +327,8 @@ async function syncAllData(gameId: number) {
     }));
   }
 
+  cachedStoryMessages = await fetchStoryMessages();
+
   dataVersion++;
 }
 
@@ -343,6 +363,7 @@ function handleRealtimeUpdate(type: 'submission' | 'announcement' | 'game' | 'ch
         timeRemainingSeconds: newRow.time_remaining,
         lastTickTimestamp: newRow.last_tick_timestamp ? new Date(newRow.last_tick_timestamp).getTime() : 0,
         skipPregame: newRow.skip_pregame,
+        skipMainPhase: newRow.skip_main_phase,
         skipFinalChallenge: newRow.skip_final_challenge,
       };
       dataVersion++;
@@ -442,6 +463,40 @@ export async function addAnnouncement(gameId: number, message: string): Promise<
       timestamp: Date.now(),
     });
   }
+}
+
+export function getStoryMessages(): StoryMessage[] {
+  return cachedStoryMessages;
+}
+
+export function getUnlockedStoryMessages(): StoryMessage[] {
+  const state = getGameState();
+  if (state.status === GameStatus.Stopped) return [];
+
+  const duration = state.duration || 7200;
+  const remaining = state.timeRemainingSeconds;
+
+  if (remaining > duration) {
+    return [];
+  }
+
+  const elapsed = duration - remaining;
+  const messages = getStoryMessages();
+  if (messages.length === 0) {
+    return [];
+  }
+
+  const interval = duration / messages.length;
+  const unlocked: StoryMessage[] = [];
+
+  for (let i = 0; i < messages.length; i++) {
+    const unlockTime = (i + 0.5) * interval;
+    if (elapsed >= unlockTime) {
+      unlocked.push(messages[i]);
+    }
+  }
+
+  return unlocked;
 }
 
 

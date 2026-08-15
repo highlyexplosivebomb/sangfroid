@@ -23,7 +23,7 @@ registerRenderer(ChallengeType.Photo, renderPhotoChallenge);
 registerRenderer(ChallengeType.Unique1, renderUniqueChallenge1);
 registerRenderer(ChallengeType.Unique2, renderUniqueChallenge2);
 registerRenderer(ChallengeType.Unique3, renderUniqueChallenge3);
-registerRenderer(ChallengeType.Final, renderUniqueChallenge3);
+registerRenderer(ChallengeType.Final, renderAnswerChallenge);
 
 const gameHost = getRequiredElement<HTMLElement>('#gameView');
 const adminHost = getRequiredElement<HTMLElement>('#adminView');

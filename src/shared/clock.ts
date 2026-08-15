@@ -27,7 +27,8 @@ export function updateClockDisplay(element: HTMLElement | null, isAdmin: boolean
 
     let timeText = '';
     if (phase === GamePhase.Pregame) {
-      const pregameRemaining = remaining - (120 * 60);
+      const expectedMainDuration = state.skipMainPhase ? 0 : 120 * 60;
+      const pregameRemaining = remaining - expectedMainDuration;
       timeText = formatTime(Math.max(0, pregameRemaining));
     } else if (phase === GamePhase.Main) {
       timeText = formatTime(Math.max(0, remaining));

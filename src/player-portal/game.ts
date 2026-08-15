@@ -149,7 +149,7 @@ function renderShell(): void {
       lastDataVersion = dataVersion;
       refreshPointsDisplay();
 
-      if (!panels.challenges?.querySelector('.challenge-detail')) {
+      if (phaseChanged || !panels.challenges?.querySelector('.challenge-detail')) {
         renderChallengeList();
       } else if (activeChallengeId !== undefined) {
         const currentSub = getSubmissionForChallenge(session.id, activeChallengeId);
@@ -386,10 +386,14 @@ function renderChallengeList(): void {
   let challenges = [...getChallenges()];
 
   if (currentPhase === GamePhase.Final) {
-    challenges = challenges.filter(c => c.type === 'final');
-  } else {
-    challenges = challenges.filter(c => c.type !== 'final');
+    const finalChall = challenges.find(c => c.type === 'final');
+    if (finalChall) {
+      renderChallengeDetail(finalChall);
+      return;
+    }
   }
+
+  challenges = challenges.filter(c => c.type !== 'final');
 
   if (currentTypeFilter !== TypeFilter.All) {
     challenges = challenges.filter(c => c.type === currentTypeFilter);
@@ -508,17 +512,24 @@ function renderChallengeDetail(challenge: Challenge): void {
   const detail = document.createElement('div');
   detail.className = 'challenge-detail';
 
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'challenge-detail-close-btn';
-  closeBtn.type = 'button';
-  closeBtn.innerHTML = `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18"></line>
-      <line x1="6" y1="6" x2="18" y2="18"></line>
-    </svg>
-  `;
-  closeBtn.addEventListener('click', () => renderChallengeList());
-  detail.appendChild(closeBtn);
+  const currentPhase = getCurrentPhase();
+  const isFinalChallenge = challenge.type === 'final' && currentPhase === GamePhase.Final;
+
+  if (isFinalChallenge) {
+    detail.classList.add('final-challenge-cli');
+  } else {
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'challenge-detail-close-btn';
+    closeBtn.type = 'button';
+    closeBtn.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    `;
+    closeBtn.addEventListener('click', () => renderChallengeList());
+    detail.appendChild(closeBtn);
+  }
 
   const scrollArea = document.createElement('div');
   scrollArea.className = 'challenge-detail-scroll-area';
