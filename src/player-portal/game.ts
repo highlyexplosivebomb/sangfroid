@@ -47,7 +47,7 @@ export const TypeFilter = {
   All: 'all',
   Answer: 'answer',
   Photo: 'photo',
-  Limited: 'limited',
+  Unique: 'unique',
 } as const;
 export type TypeFilter = (typeof TypeFilter)[keyof typeof TypeFilter];
 
@@ -351,7 +351,7 @@ function renderChallengeList(): void {
     <option value="all" ${currentTypeFilter === 'all' ? 'selected' : ''}>All Types</option>
     <option value="answer" ${currentTypeFilter === 'answer' ? 'selected' : ''}>Answer</option>
     <option value="photo" ${currentTypeFilter === 'photo' ? 'selected' : ''}>Photo</option>
-    <option value="limited" ${currentTypeFilter === 'limited' ? 'selected' : ''}>Limited</option>
+    <option value="unique" ${currentTypeFilter === 'unique' ? 'selected' : ''}>Unique</option>
   `;
   typeSelect.addEventListener('change', (e) => {
     currentTypeFilter = (e.target as HTMLSelectElement).value as typeof currentTypeFilter;
@@ -396,7 +396,10 @@ function renderChallengeList(): void {
   challenges = challenges.filter(c => c.type !== 'final');
 
   if (currentTypeFilter !== TypeFilter.All) {
-    challenges = challenges.filter(c => c.type === currentTypeFilter);
+    challenges = challenges.filter(c => {
+      const displayType = c.type.startsWith('unique') ? 'unique' : c.type;
+      return displayType === currentTypeFilter;
+    });
   }
 
   challenges = sortChallenges(challenges, session.id);
