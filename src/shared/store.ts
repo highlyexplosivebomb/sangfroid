@@ -16,6 +16,7 @@ export const ChallengeType = {
   Unique1: 'unique-1',
   Unique2: 'unique-2',
   Unique3: 'unique-3',
+  Unique4: 'unique-4',
   Final: 'final',
 } as const;
 export type ChallengeType = (typeof ChallengeType)[keyof typeof ChallengeType];
