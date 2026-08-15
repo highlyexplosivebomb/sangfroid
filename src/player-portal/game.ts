@@ -436,7 +436,7 @@ function buildChallengeCard(challenge: Challenge, teamId: number): HTMLElement {
 
   const desc = document.createElement('div');
   desc.className = 'challenge-card-desc';
-  desc.textContent = challenge.description;
+  desc.textContent = challenge.description.replace(/\\n/g, '\n');
 
   body.appendChild(title);
   body.appendChild(desc);
@@ -561,7 +561,7 @@ function renderChallengeDetail(challenge: Challenge): void {
 
   const descEl = document.createElement('p');
   descEl.className = 'challenge-detail-desc';
-  descEl.textContent = challenge.description;
+  descEl.textContent = challenge.description.replace(/\\n/g, '\n');
   infoContainer.appendChild(descEl);
 
   scrollArea.appendChild(infoContainer);
