@@ -145,27 +145,31 @@ function renderShell(): void {
     const phaseChanged = currentPhase !== lastPhase;
     lastPhase = currentPhase;
 
-    if (activeTab === GameTab.Challenges && (dataVersion !== lastDataVersion || phaseChanged)) {
+    if (dataVersion !== lastDataVersion || phaseChanged) {
       lastDataVersion = dataVersion;
       refreshPointsDisplay();
 
-      if (phaseChanged || !panels.challenges?.querySelector('.challenge-detail')) {
-        renderChallengeList();
-      } else if (activeChallengeId !== undefined) {
-        const currentSub = getSubmissionForChallenge(session.id, activeChallengeId);
-        let partnerSub: Submission;
-        if (currentSub?.hostTeamId) {
-          partnerSub = getSubmissionForChallenge(currentSub.hostTeamId, activeChallengeId);
-        } else if (currentSub?.guestTeamIds?.length) {
-          partnerSub = getSubmissionForChallenge(currentSub.guestTeamIds[0], activeChallengeId);
-        }
-        const currentData = JSON.stringify({ existingSub: currentSub, partnerSub });
-        if (currentData !== activeChallengeData) {
-          const chall = getChallenges().find(c => c.id === activeChallengeId);
-          if (chall) {
-            renderChallengeDetail(chall);
+      if (activeTab === GameTab.Challenges) {
+        if (phaseChanged || !panels.challenges?.querySelector('.challenge-detail')) {
+          renderChallengeList();
+        } else if (activeChallengeId !== undefined) {
+          const currentSub = getSubmissionForChallenge(session.id, activeChallengeId);
+          let partnerSub: Submission;
+          if (currentSub?.hostTeamId) {
+            partnerSub = getSubmissionForChallenge(currentSub.hostTeamId, activeChallengeId);
+          } else if (currentSub?.guestTeamIds?.length) {
+            partnerSub = getSubmissionForChallenge(currentSub.guestTeamIds[0], activeChallengeId);
+          }
+          const currentData = JSON.stringify({ existingSub: currentSub, partnerSub });
+          if (currentData !== activeChallengeData) {
+            const chall = getChallenges().find(c => c.id === activeChallengeId);
+            if (chall) {
+              renderChallengeDetail(chall);
+            }
           }
         }
+      } else if (activeTab === GameTab.More && panels.more) {
+        renderMoreTab(panels.more);
       }
     }
   }, 1000);
