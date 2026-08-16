@@ -75,86 +75,13 @@ export function renderPhotoChallenge(
   fileInput.accept = 'image/*';
   fileInput.capture = 'environment';
   fileInput.style.display = 'none';
-
-  const zone = document.createElement('div');
-  zone.className = 'photo-upload-zone';
-
-  const icon = createSvgIcon(
-    `<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-     <circle cx="8.5" cy="8.5" r="1.5"/>
-     <polyline points="21 15 16 10 5 21"/>`
-  );
-  icon.setAttribute('class', 'photo-upload-icon');
-
-  const text = document.createElement('div');
-  text.className = 'photo-upload-text';
-  text.textContent = 'Tap to take or upload a photo';
-
-  const preview = document.createElement('img');
-  preview.className = 'photo-preview hidden';
-  preview.alt = 'Preview';
-
-  zone.appendChild(icon);
-  zone.appendChild(text);
-  zone.appendChild(preview);
-  container.appendChild(zone);
   container.appendChild(fileInput);
 
-  let selectedBlob: Blob | undefined;
   const isLocked = existingSubmission?.status === SubmissionStatus.Pending || existingSubmission?.status === SubmissionStatus.Approved;
-
-  if (existingSubmission?.value) {
-    preview.src = existingSubmission.value;
-    preview.classList.remove('hidden');
-    icon.classList.add('hidden');
-
-    if (isLocked) {
-      text.classList.add('hidden');
-      zone.classList.add('locked');
-    } else {
-      text.textContent = 'Tap to change photo';
-      zone.classList.add('has-preview');
-    }
-  }
-
-  zone.addEventListener('click', () => {
-    if (isLocked) {
-      return;
-    }
-    fileInput.click();
-  });
-
-  fileInput.addEventListener('change', async () => {
-    const file = fileInput.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    try {
-      const result = await compressImage(file);
-      selectedBlob = result.blob;
-      preview.src = result.dataUrl;
-      preview.classList.remove('hidden');
-      icon.classList.add('hidden');
-      text.textContent = 'Tap to change photo';
-      zone.classList.add('has-preview');
-    } catch {
-      shakeElement(zone);
-    }
-  });
-
-  const btn = document.createElement('button');
-  btn.className = 'challenge-submit-btn photo-submit-btn';
-  btn.type = 'button';
-  btn.textContent = 'Submit';
-
-  if (!isLocked) {
-    container.appendChild(btn);
-  }
 
   const feedbackSlot = document.createElement('div');
   feedbackSlot.className = 'photo-feedback-slot';
-  container.insertBefore(feedbackSlot, zone);
+  container.appendChild(feedbackSlot);
 
   if (existingSubmission?.status === SubmissionStatus.Rejected) {
     feedbackSlot.appendChild(createFeedback('incorrect', 'Submission rejected - try again'));
@@ -164,38 +91,101 @@ export function renderPhotoChallenge(
     feedbackSlot.appendChild(createFeedback('submitted', 'Submitted - under review. This may take a few mins.'));
   }
 
-  btn.addEventListener('click', async () => {
-    if (!selectedBlob) {
-      if (existingSubmission?.value) {
-        onSubmit(existingSubmission.value);
-      } else {
-        shakeElement(zone);
-      }
-      return;
-    }
+  if (existingSubmission?.value) {
+    const contentArea = document.createElement('div');
+    contentArea.className = 'photo-challenge-content';
+    const preview = document.createElement('img');
+    preview.className = 'photo-preview';
+    preview.src = existingSubmission.value;
+    preview.style.display = 'block';
+    preview.style.marginBottom = 'var(--spacing-md)';
+    contentArea.appendChild(preview);
+    container.appendChild(contentArea);
+  }
 
-    const session = getTeamSession();
-    if (!session) {
-      return;
-    }
+  let selectedBlob: Blob | undefined;
 
-    btn.disabled = true;
-    zone.style.pointerEvents = 'none';
-    zone.style.opacity = '0.6';
+  const btn = document.createElement('button');
+  btn.className = 'challenge-submit-btn photo-submit-btn';
+  btn.type = 'button';
+  btn.textContent = existingSubmission?.value ? 'Retake Photo' : 'Capture Photo';
+  
+  btn.addEventListener('click', () => {
+    fileInput.click();
+  });
 
-    const publicUrl = await uploadPhoto(selectedBlob, session.tag);
+  if (!isLocked) {
+    container.appendChild(btn);
+  }
 
-    if (publicUrl) {
-      onSubmit(publicUrl);
-    } else {
-      btn.disabled = false;
-      zone.style.pointerEvents = '';
-      zone.style.opacity = '';
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
 
-      feedbackSlot.innerHTML = '';
-      feedbackSlot.appendChild(createFeedback('incorrect', 'Upload failed - try again'));
+    try {
+      const result = await compressImage(file);
+      selectedBlob = result.blob;
+      showPhotoPopup(result.dataUrl);
+    } catch {
+      shakeElement(btn);
     }
   });
+
+  function showPhotoPopup(dataUrl: string) {
+    const overlay = document.createElement('div');
+    overlay.className = 'photo-popup-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'photo-popup-modal';
+    
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.className = 'photo-popup-preview';
+    
+    const btnRow = document.createElement('div');
+    btnRow.className = 'message-action-row';
+
+    const retakeBtn = document.createElement('button');
+    retakeBtn.className = 'challenge-submit-btn steal-btn';
+    retakeBtn.textContent = 'Retake';
+    retakeBtn.onclick = () => { 
+      overlay.remove(); 
+      fileInput.click(); 
+    };
+
+    const submitBtn = document.createElement('button');
+    submitBtn.className = 'challenge-submit-btn split-btn';
+    submitBtn.textContent = 'Submit';
+    submitBtn.onclick = async () => {
+      if (!selectedBlob) return;
+
+      const session = getTeamSession();
+      if (!session) return;
+
+      submitBtn.disabled = true;
+      retakeBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      const publicUrl = await uploadPhoto(selectedBlob, session.tag);
+      overlay.remove();
+
+      if (publicUrl) {
+        onSubmit(publicUrl);
+      } else {
+        feedbackSlot.innerHTML = '';
+        feedbackSlot.appendChild(createFeedback('incorrect', 'Upload failed - try again'));
+      }
+    };
+
+    btnRow.appendChild(retakeBtn);
+    btnRow.appendChild(submitBtn);
+
+    modal.appendChild(img);
+    modal.appendChild(btnRow);
+    overlay.appendChild(modal);
+    
+    document.body.appendChild(overlay);
+  }
 
   return container;
 }

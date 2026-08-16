@@ -15,8 +15,7 @@ import { mountGame, unmountGame } from './player-portal/game';
 import { mountAdmin, unmountAdmin } from './admin-portal/admin';
 import { initMap, mountLanding, unmountLanding } from './landing/landing';
 import { getRequiredElement } from './shared/dom';
-
-import { ChallengeType } from './shared/store';
+import { getTeamSession, ChallengeType } from './shared/store';
 
 registerRenderer(ChallengeType.Answer, renderAnswerChallenge);
 registerRenderer(ChallengeType.Photo, renderPhotoChallenge);
@@ -47,5 +46,10 @@ registerView(SangfroidView.AdminPortal, () => {
   unmountAdmin();
 });
 
-navigateTo(getViewFromPath());
+const initialView = getViewFromPath();
+if (initialView === SangfroidView.Landing && getTeamSession()) {
+  navigateTo(SangfroidView.PlayerPortal);
+} else {
+  navigateTo(initialView);
+}
 initMap();

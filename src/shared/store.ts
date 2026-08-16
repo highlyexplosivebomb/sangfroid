@@ -127,7 +127,11 @@ let adminGameId: number | undefined;
 
 const storedTeam = localStorage.getItem('sangfroid_team');
 if (storedTeam) {
-  currentTeam = JSON.parse(storedTeam);
+  try {
+    currentTeam = JSON.parse(storedTeam);
+  } catch {
+    localStorage.removeItem('sangfroid_team');
+  }
 }
 
 let declinedMatchmakingRequests: Set<number> = new Set();
@@ -153,6 +157,7 @@ try {
 export function loginTeam(id: number, tag: string, name: string, gameId: number, timestamp: number): void {
   currentTeam = { id, tag, name, gameId, timestamp };
   localStorage.setItem('sangfroid_team', JSON.stringify(currentTeam));
+  stopPolling();
   startPolling();
 }
 

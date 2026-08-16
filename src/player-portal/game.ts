@@ -595,7 +595,7 @@ function renderChallengeDetail(challenge: Challenge): void {
         }
       };
 
-      if (challenge.type === 'answer') {
+      if (challenge.type === 'answer' || challenge.type === 'final') {
         const isCorrect = challenge.answer
           ? value.trim().toLowerCase() === challenge.answer.toLowerCase()
           : false;
