@@ -141,7 +141,6 @@ try {
     declinedMatchmakingRequests = new Set(JSON.parse(d));
   }
 } catch {
-  // ignore
 }
 
 let dismissedAnnouncements: Set<number> = new Set();
@@ -151,7 +150,6 @@ try {
     dismissedAnnouncements = new Set(JSON.parse(a));
   }
 } catch {
-  // ignore
 }
 
 export function loginTeam(id: number, tag: string, name: string, gameId: number, timestamp: number): void {
@@ -390,7 +388,9 @@ function handleRealtimeUpdate(type: 'submission' | 'announcement' | 'game' | 'ch
     }
   } else if (type === 'submission') {
     if (eventType === 'INSERT') {
-      if (newRow.game_id !== getActiveGameId()) return;
+      if (newRow.game_id !== getActiveGameId()) {
+        return;
+      }
       let finalValue = newRow.value;
       if (!isAdmin && currentTeam && newRow.team_id !== currentTeam.id) {
         finalValue = null;
@@ -479,7 +479,9 @@ export function getStoryMessages(): StoryMessage[] {
 
 export function getUnlockedStoryMessages(): StoryMessage[] {
   const state = getGameState();
-  if (state.status === GameStatus.Stopped) return [];
+  if (state.status === GameStatus.Stopped) {
+    return [];
+  }
 
   const duration = state.duration || 7200;
   let remaining = state.timeRemainingSeconds;

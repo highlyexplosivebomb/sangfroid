@@ -88,19 +88,7 @@ export function renderPhotoChallenge(
   } else if (existingSubmission?.status === SubmissionStatus.Approved) {
     feedbackSlot.appendChild(createFeedback('correct', `Submission approved - +${challenge.points} pts`));
   } else if (existingSubmission?.status === SubmissionStatus.Pending) {
-    feedbackSlot.appendChild(createFeedback('submitted', 'Submitted - under review. This may take a few mins.'));
-  }
-
-  if (existingSubmission?.value) {
-    const contentArea = document.createElement('div');
-    contentArea.className = 'photo-challenge-content';
-    const preview = document.createElement('img');
-    preview.className = 'photo-preview';
-    preview.src = existingSubmission.value;
-    preview.style.display = 'block';
-    preview.style.marginBottom = 'var(--spacing-md)';
-    contentArea.appendChild(preview);
-    container.appendChild(contentArea);
+    feedbackSlot.appendChild(createFeedback('submitted', 'Submitted - under review'));
   }
 
   let selectedBlob: Blob | undefined;
@@ -109,7 +97,7 @@ export function renderPhotoChallenge(
   btn.className = 'challenge-submit-btn photo-submit-btn';
   btn.type = 'button';
   btn.textContent = existingSubmission?.value ? 'Retake Photo' : 'Capture Photo';
-  
+
   btn.addEventListener('click', () => {
     fileInput.click();
   });
@@ -120,7 +108,9 @@ export function renderPhotoChallenge(
 
   fileInput.addEventListener('change', async () => {
     const file = fileInput.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     try {
       const result = await compressImage(file);
@@ -134,33 +124,37 @@ export function renderPhotoChallenge(
   function showPhotoPopup(dataUrl: string) {
     const overlay = document.createElement('div');
     overlay.className = 'photo-popup-overlay';
-    
+
     const modal = document.createElement('div');
     modal.className = 'photo-popup-modal';
-    
+
     const img = document.createElement('img');
     img.src = dataUrl;
     img.className = 'photo-popup-preview';
-    
+
     const btnRow = document.createElement('div');
     btnRow.className = 'message-action-row';
 
     const retakeBtn = document.createElement('button');
     retakeBtn.className = 'challenge-submit-btn steal-btn';
     retakeBtn.textContent = 'Retake';
-    retakeBtn.onclick = () => { 
-      overlay.remove(); 
-      fileInput.click(); 
+    retakeBtn.onclick = () => {
+      overlay.remove();
+      fileInput.click();
     };
 
     const submitBtn = document.createElement('button');
     submitBtn.className = 'challenge-submit-btn split-btn';
     submitBtn.textContent = 'Submit';
     submitBtn.onclick = async () => {
-      if (!selectedBlob) return;
+      if (!selectedBlob) {
+        return;
+      }
 
       const session = getTeamSession();
-      if (!session) return;
+      if (!session) {
+        return;
+      }
 
       submitBtn.disabled = true;
       retakeBtn.disabled = true;
@@ -183,7 +177,7 @@ export function renderPhotoChallenge(
     modal.appendChild(img);
     modal.appendChild(btnRow);
     overlay.appendChild(modal);
-    
+
     document.body.appendChild(overlay);
   }
 

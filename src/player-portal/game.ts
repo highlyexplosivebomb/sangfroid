@@ -712,7 +712,7 @@ function pollMessagesBanner(container: HTMLElement, currentTeamId: number): void
   }
 
   if (container.dataset.messageCount === String(totalMessages)) {
-    return; // Already showing this count
+    return;
   }
 
   const existing = document.getElementById('messagesBanner');

@@ -1,7 +1,7 @@
 import type { ChallengeRenderer } from '../challenges';
 import {
   SubmissionStatus, requestTeamUp, getTeamSession,
-  getSubmissionForChallenge, updateSubmissionData
+  getSubmissionForChallenge, updateSubmissionData, getMatchmakingRequests, acceptTeamUp
 } from '../../shared/store';
 import { renderPhotoChallenge } from './photoChallenge';
 import { renderMatchmakingUI } from './challengeMatchmaking';
@@ -77,14 +77,28 @@ export const renderUniqueChallenge2: ChallengeRenderer = (challenge, existingSub
   }
 
   if (!existingSubmission) {
+    const activeRequests = getMatchmakingRequests(challenge.id);
+    const existingRequest = activeRequests[0];
+
     const requestBtn = document.createElement('button');
     requestBtn.id = 'requestTeamUpBtn';
     requestBtn.className = 'challenge-submit-btn';
-    requestBtn.textContent = 'Start Matchmaking';
-    requestBtn.addEventListener('click', async () => {
-      requestBtn.disabled = true;
-      await requestTeamUp(challenge.id, session.id);
-    });
+
+    if (existingRequest) {
+      requestBtn.textContent = 'Join Matchmaking';
+      requestBtn.classList.add('split-btn');
+      requestBtn.addEventListener('click', async () => {
+        requestBtn.disabled = true;
+        await acceptTeamUp(existingRequest, session.id);
+      });
+    } else {
+      requestBtn.textContent = 'Start Matchmaking';
+      requestBtn.addEventListener('click', async () => {
+        requestBtn.disabled = true;
+        await requestTeamUp(challenge.id, session.id);
+      });
+    }
+
     container.appendChild(requestBtn);
     return container;
   }
